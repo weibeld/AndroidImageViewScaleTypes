@@ -24,4 +24,7 @@ public class Data {
 
     // Page position argument passed to the ScaleTypeFragment
     public static final String ARG_POSITION = "position";
+
+    // Link to image
+    public static final String IMAGE_URL = "https://image.tmdb.org/t/p/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg";
 }
