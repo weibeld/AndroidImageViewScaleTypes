@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ImageView Scale Types</string>
+
+    <string name="imageview_size">ImageView:</string>
+    <string name="image_size_displayed">Scaled image:</string>
+    <string name="image_size_original">Original image:</string>
 </resources>
