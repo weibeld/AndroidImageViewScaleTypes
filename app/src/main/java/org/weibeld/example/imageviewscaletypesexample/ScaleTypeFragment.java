@@ -134,8 +134,9 @@ public class ScaleTypeFragment extends Fragment {
         int heightImageScaled;
         Matrix matrix = mImageView.getImageMatrix();
         if (mScaleType != ImageView.ScaleType.FIT_XY) {
-            // The scaling the ImageView performs to the width and height of the image is defined
-            // in the ImageView's transformation matrix as entries MSCALE_X and MSCALE_Y.
+            // For all scale types except FIT_XY, the scale that the ImageView applies to width
+            // and height of the original image is declared as MSCALE_X and MSCALE_Y in the
+            // ImageView's transformation matrix.
             float[] matrixVals = new float[9];
             matrix.getValues(matrixVals);
             float scaleX = matrixVals[Matrix.MSCALE_X];
@@ -145,7 +146,9 @@ public class ScaleTypeFragment extends Fragment {
             heightImageScaled = Math.round(heightImageOrig * scaleY);
         }
         else {
-            // Second approach to get width and height of image (drawable) after scaling
+            // For the FIT_XY scale type, the transformation matrix is not used, but the bounds
+            // of the Drawable (image) are directly set to fill the ImageView. Thus, for getting
+            // the scales, we need to directly query width and height of the drawable.
             Drawable drawable = mImageView.getDrawable();
             Rect rect = drawable.getBounds();
             widthImageScaled = rect.width();

@@ -27,4 +27,7 @@ public class Data {
 
     // Link to image
     public static final String IMAGE_URL = "https://image.tmdb.org/t/p/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg";
+
+    // Code for identifying the intent for choosing an image
+    public static final int REQUEST_CHOOSE_IMAGE = 1;
 }

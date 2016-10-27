@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">ImageView Scale Types</string>
 
+    <!-- Image size info text -->
     <string name="imageview_size">ImageView:</string>
-    <string name="image_size_displayed">Scaled image:</string>
     <string name="image_size_original">Original image:</string>
+    <string name="image_size_displayed">Scaled image:</string>
+
+    <!-- App bar actions -->
+    <string name="action_choose_image">Choose Image</string>
 </resources>
