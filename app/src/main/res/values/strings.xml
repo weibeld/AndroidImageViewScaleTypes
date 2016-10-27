@@ -1,11 +1,15 @@
 <resources>
-    <string name="app_name">ImageView Scale Types</string>
+    <string name="app_name" translatable="false">ImageView Scale Types</string>
 
     <!-- Image size info text -->
-    <string name="imageview_size">ImageView:</string>
+    <string name="imageview_size" translatable="false">ImageView:</string>
     <string name="image_size_original">Original image:</string>
     <string name="image_size_displayed">Scaled image:</string>
 
     <!-- App bar actions -->
     <string name="action_choose_image">Choose Image</string>
+
+    <!-- SharedPreferences -->
+    <string name="pref_image_key" translatable="false">image</string>
+    <string name="pref_image_default" translatable="false">android.resource://org.weibeld.example.imageviewscaletypesexample/drawable/default_image</string>
 </resources>
