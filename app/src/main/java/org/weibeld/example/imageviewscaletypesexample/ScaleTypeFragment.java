@@ -107,19 +107,19 @@ public class ScaleTypeFragment extends Fragment {
         String prefImageKey = getString(R.string.pref_image_key);
         String prefImageDefault = getString(R.string.pref_image_default);
         Uri imageUri = Uri.parse(sharedPrefs.getString(prefImageKey, prefImageDefault));
+        // Check if we have a READ permission for this URI
+        int result = getActivity().checkUriPermission(
+                imageUri,
+                Binder.getCallingPid(),
+                Binder.getCallingUid(),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        // Check if we have read access to this URI
-        int result = getActivity().checkUriPermission(imageUri, Binder.getCallingPid(), Binder.getCallingUid(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            // If we have permission load the URI image
-            loadWithPicasso(imageUri);
-        }
+        if (result == PackageManager.PERMISSION_GRANTED) loadWithPicasso(imageUri);
         else {
-            // If we don't have permission, load the default image. If we would try to load an URI
-            // for which we don't have permission then the behaviour would be as follows: loading by
-            // setImageDrawable and setImageBitmap raises "SecurityException: Permission Denial",
-            // loading with setImageURI and Picasso does not raise an exception but does not load
-            // any image into the ImageView.
+            // If we don't have a READ permission for the URI, load the default image. Attempting
+            // to load an image without permissions, would result in the following:
+            // setImageDrawable, setImageBitmap: raise "SecurityException: Permission Denial"
+            // setImageURI, Picasso: no exception raised, but no image loaded into ImageView
             loadWithPicasso(Uri.parse(getString(R.string.pref_image_default)));
             Toast.makeText(getActivity(), "No URI permission for " + imageUri.toString(), Toast.LENGTH_SHORT).show();
             Log.v(LOG_TAG, mScaleType.name() + ": no URI permission for " + imageUri.toString());

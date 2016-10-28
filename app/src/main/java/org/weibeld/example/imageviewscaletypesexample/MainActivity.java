@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import org.weibeld.util.Util;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,29 +81,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        // Create and launch an intent for picking an image (includes images on device and on
-        // network locatios, e.g. Google Drive). The app opened is the built-in file explorer.
+        // Create and launch an intent for picking an image from a content provider.
         if (id == R.id.action_choose_image) {
             Intent intent = new Intent();
             // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
             // https://developer.android.com/guide/topics/providers/document-provider.html#client
-            if (Build.VERSION.SDK_INT >= 19)
-                // ACTION_OPEN_DOCUMENT introduced in API level 19 (Android 4.4 KitKat) together
-                // with the Storage Access Framework (SAF). Allows to get a URI to a file owned
-                // by a Document Provider with a LONG-TERM and PERSISTENT URI permission grant for
-                // this file for the ENTIRE APP. The permission grant lasts until the device is
-                // turned off. That is, unlike ACTION_GET_CONTENT, all components of our app have
-                // access to this file, also across app restarts (until device is restarted).
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                // ACTION_OPEN_DOCUMENT was introduced in API level 19 (4.4 KitKat) together with
+                // the Storage Access Framework (SAF). It launches a standard activity that shows
+                // all the DocumentsProvider on the device and allows to choose a document from any
+                // of them. A DocumentsProvider is a special type of ContentProvider.
                 intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-            else
-                // ACTION_GET_CONTENT allows to get an URI to a file owned by another app with a
-                // TEMPORARY permission grant for this file for the current activity only (and its
-                // fragments). That means, if the app is restarted, then a fresh activity has no
-                // permission to access this file (java.lang.SecurityException: Permission Denial).
+                Log.v(LOG_TAG, "Using ACTION_OPEN_DOCUMENT");
+            }
+            else {
+                // ACTION_GET_CONTENT launches the "best" app that provides a certain type of
+                // content (e.g. MIME type image/*) and allows to choose an item from it. The URI
+                // permissions for the selected file are only temporary.
                 intent.setAction(Intent.ACTION_GET_CONTENT);
+                Log.v(LOG_TAG, "Using ACTION_GET_CONTENT");
+            }
             intent.setType("image/*");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, Data.REQUEST_CHOOSE_IMAGE);
+            startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -110,28 +111,49 @@ public class MainActivity extends AppCompatActivity {
 
     // Called when the activity, which was started by startActivityForResult, returns its result
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        // The started activity returns the URI of the selected image, along with a URI permission.
-        // Save this URI in the SharedPreferences of this activity.
-        if (requestCode == Data.REQUEST_CHOOSE_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri uri = data.getData();
-            // If we used ACTION_OPEN_DOCUMENT: the URI permission lasts until the device restarts.
-            // The following persists this permission across device restarts. See:
-            // https://developer.android.com/guide/topics/providers/document-provider.html#client
-            if (Build.VERSION.SDK_INT >= 19)
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            // If we used ACTION_GET_CONTENT: the URI permission is valid only for the current
-            // activity. If the app is restarted, the new activity has no permission for this URI.
-            // The following extends the URI permission to the entire app, and as long as the
-            // device is running (not across device restarts). Might not work on all devices.
-            else
-                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            SharedPreferences sharedPrefs = getPreferences(MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPrefs.edit();
-            editor.putString(getString(R.string.pref_image_key), uri.toString());
-            editor.commit();
-            Log.v(LOG_TAG, "onActivityResult: saved " + uri.toString() + " in SharedPreferences");
+    protected void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
+        // The activity started by the choose image request returns the URI of the selected image.
+        // Save this URI in the SharedPreferences.
+        if (requestCode == Data.CHOOSE_IMAGE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK && resultData != null) {
+                Uri uri = resultData.getData();
+                settleUriPermissions(uri, resultData.getFlags());
+                SharedPreferences sharedPrefs = getPreferences(MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPrefs.edit();
+                editor.putString(getString(R.string.pref_image_key), uri.toString());
+                editor.commit();
+                Log.v(LOG_TAG, "onActivityResult: saved " + uri.toString() + " in SharedPreferences");
+            }
+        }
+    }
+
+    // Helper function for settling URI permission issues on both pre and post KitKat devices. The
+    // goal is to extend the permissions for the returned URI as fas as possible. This is because
+    // on every app launch, our app tries to display the image whose URI is currently stored in the
+    // SharedPreferences. Attempting to access this file without URI permissions, results in a
+    // java.lang.SecurityException: Permission Denial.
+    private void settleUriPermissions(Uri uri, int mode) {
+        Log.v(LOG_TAG, "Flags " + Util.intToBinaryString(mode) + " for URI " + uri);
+        // Extract the READ, WRITE, or both flags, if they are set
+        int rwFlags = mode & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        // If we used ACTION_OPEN_DOCUMENT: the READ/WRITE permissions that we got from the
+        // DocumentsProvider for the returned URI are valid for the entire app, and across
+        // app restarts, however, not across device reboots. With the following, we can make
+        // these permissions persistent across device reboots.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // Note: this has only an effect if the FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+            // is set. Whether this is set, depends on the DocumentsProvider.
+            getContentResolver().takePersistableUriPermission(uri, rwFlags);
+        }
+        // If we used ACTION_GET_CONTENT: the READ/WRITE permissions that we got from the
+        // content provider for the returned URI are valid only for the current Activity.
+        // That is, when the app is restarted, the new MainActivity has no permissions for
+        // the same URI. With the following, we can extend these permissions to the entire
+        // package, so that they persist across app restarts. There seems to be no way to
+        // extend the permissions across device reboots.
+        else {
+            grantUriPermission(getPackageName(), uri, rwFlags);
         }
     }
 }
