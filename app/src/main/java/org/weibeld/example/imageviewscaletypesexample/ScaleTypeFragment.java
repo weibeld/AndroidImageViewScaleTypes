@@ -1,6 +1,5 @@
 package org.weibeld.example.imageviewscaletypesexample;
 
-import android.R;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;

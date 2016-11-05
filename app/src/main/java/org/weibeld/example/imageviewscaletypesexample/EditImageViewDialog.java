@@ -27,6 +27,7 @@ public class EditImageViewDialog extends DialogFragment {
     EditText mMaxHeight;
 
     // Called after on Create and before onCreateView
+    @SuppressWarnings("ResourceType")
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
