@@ -8,10 +8,10 @@
 
     <!-- Options menu actions (app bar) -->
     <string name="action_choose_image">Choose Image</string>
-    <string name="action_edit_image_view">Set ImageView Properties</string>
+    <string name="action_edit_image_view">Edit ImageView</string>
 
     <!-- Edit ImageView dialog -->
-    <string name="dialog_title_image_view">Edit ImageView Properties</string>
+    <string name="dialog_title_image_view">Edit ImageView</string>
 
     <!-- Dialog buttons -->
     <string name="dialog_save">Save</string>

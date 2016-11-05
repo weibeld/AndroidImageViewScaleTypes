@@ -9,7 +9,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.EditText;
+
+import org.weibeld.example.imageviewscaletypesexample.databinding.DialogImageViewBinding;
 
 /**
  * Created by dw on 03/11/16.
@@ -17,14 +18,11 @@ import android.widget.EditText;
 
 public class EditImageViewDialog extends DialogFragment {
 
-    View mRootView;
+    DialogImageViewBinding mBinding;
 
-    EditText mLayoutWidth;
-    EditText mLayoutHeight;
-    EditText mBackground;
-    EditText mAdjustViewBounds;
-    EditText mMaxWidth;
-    EditText mMaxHeight;
+    SharedPreferences mSharedPrefs;
+
+    View mRootView;
 
     // Called after on Create and before onCreateView
     @SuppressWarnings("ResourceType")
@@ -33,28 +31,22 @@ public class EditImageViewDialog extends DialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         mRootView = inflater.inflate(R.layout.dialog_image_view, null);
 
-        mLayoutWidth = (EditText) mRootView.findViewById(R.id.layout_width_edit);
-        mLayoutHeight = (EditText) mRootView.findViewById(R.id.layout_height_edit);
-        mBackground = (EditText) mRootView.findViewById(R.id.background_edit);
-        mAdjustViewBounds = (EditText) mRootView.findViewById(R.id.adjustViewBounds_edit);
-        mMaxWidth = (EditText) mRootView.findViewById(R.id.maxWidth_edit);
-        mMaxHeight = (EditText) mRootView.findViewById(R.id.maxHeight_edit);
+        mBinding = DialogImageViewBinding.bind(mRootView);
 
+        mSharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
 
-
-        SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
-        mLayoutWidth.setText(prefs.getString(getString(R.string.pref_ImageView_layout_width_key),
-                getString(R.string.pref_ImageView_layout_width_default)));
-        mLayoutHeight.setText(prefs.getString(getString(R.string.pref_ImageView_layout_height_key),
-                getString(R.string.pref_ImageView_layout_height_default)));
-        mBackground.setText(prefs.getString(getString(R.string.pref_ImageView_background_key),
+        mBinding.layoutWidthEdit.setText(mSharedPrefs.getString(getString(R.string.pref_layout_width_key),
+                getString(R.string.pref_layout_width_default)));
+        mBinding.layoutHeightEdit.setText(mSharedPrefs.getString(getString(R.string.pref_layout_height_key),
+                getString(R.string.pref_layout_height_default)));
+        mBinding.backgroundEdit.setText(mSharedPrefs.getString(getString(R.string.pref_background_key),
                 getString(R.color.colorAccent).toUpperCase()));
-        mAdjustViewBounds.setText(prefs.getString(getString(R.string.pref_ImageView_adjustViewBounds_key),
-                getString(R.string.pref_ImageView_adjustViewBounds_default)));
-        mMaxWidth.setText(prefs.getString(getString(R.string.pref_ImageView_maxWidth_key),
-                getString(R.string.pref_ImageView_maxWidth_default)));
-        mMaxHeight.setText(prefs.getString(getString(R.string.pref_ImageView_maxHeight_key),
-                getString(R.string.pref_ImageView_maxHeight_default)));
+        mBinding.adjustViewBoundsEdit.setText(mSharedPrefs.getString(getString(R.string.pref_adjustViewBounds_key),
+                getString(R.string.pref_adjustViewBounds_default)));
+        mBinding.maxWidthEdit.setText(mSharedPrefs.getString(getString(R.string.pref_maxWidth_key),
+                getString(R.string.pref_maxWidth_default)));
+        mBinding.maxHeightEdit.setText(mSharedPrefs.getString(getString(R.string.pref_maxHeight_key),
+                getString(R.string.pref_maxHeight_default)));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(mRootView).
