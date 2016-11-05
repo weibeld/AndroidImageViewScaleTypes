@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
 import org.weibeld.util.Util;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,33 +81,44 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        // Create and launch an intent for picking an image from a content provider.
-        if (id == R.id.action_choose_image) {
-            Intent intent = new Intent();
-            // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
-            // https://developer.android.com/guide/topics/providers/document-provider.html#client
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                // ACTION_OPEN_DOCUMENT was introduced in API level 19 (4.4 KitKat) together with
-                // the Storage Access Framework (SAF). It launches a standard activity that shows
-                // all the DocumentsProvider on the device and allows to choose a document from any
-                // of them. A DocumentsProvider is a special type of ContentProvider.
-                intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-                Log.v(LOG_TAG, "Using ACTION_OPEN_DOCUMENT");
-            }
-            else {
-                // ACTION_GET_CONTENT launches the "best" app that provides a certain type of
-                // content (e.g. MIME type image/*) and allows to choose an item from it. The URI
-                // permissions for the selected file are only temporary.
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                Log.v(LOG_TAG, "Using ACTION_GET_CONTENT");
-            }
-            intent.setType("image/*");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_choose_image:
+                // Launch intent to pick an image from a ContentProvider or DocumentsProvider
+                Intent intent = new Intent();
+                // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
+                // https://developer.android.com/guide/topics/providers/document-provider.html#client
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    // ACTION_OPEN_DOCUMENT was introduced in API level 19 (4.4 KitKat) together with
+                    // the Storage Access Framework (SAF). It launches a standard activity that shows
+                    // all the DocumentsProvider on the device and allows to choose a document from any
+                    // of them. A DocumentsProvider is a special type of ContentProvider.
+                    intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+                    Log.v(LOG_TAG, "Using ACTION_OPEN_DOCUMENT");
+                }
+                else {
+                    // ACTION_GET_CONTENT launches the "best" app that provides a certain type of
+                    // content (e.g. MIME type image/*) and allows to choose an item from it. The URI
+                    // permissions for the selected file are only temporary.
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    Log.v(LOG_TAG, "Using ACTION_GET_CONTENT");
+                }
+                intent.setType("image/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
+                return true;
+            case R.id.action_edit_image_view:
+                EditImageViewDialog dialog = new EditImageViewDialog();
+                dialog.show(getFragmentManager(),"tag");
+//                FragmentManager fragmentManager = getFragmentManager();
+//                FragmentTransaction transaction = fragmentManager.beginTransaction();
+//                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//                transaction.add(android.R.id.content, dialog).addToBackStack(null).commit();
+                //transaction.addToBackStack(null);
+                //dialog.show(transaction, "tag");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     // Called when the activity, which was started by startActivityForResult, returns its result

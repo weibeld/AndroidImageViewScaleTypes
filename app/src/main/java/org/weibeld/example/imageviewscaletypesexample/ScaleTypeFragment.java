@@ -1,5 +1,6 @@
 package org.weibeld.example.imageviewscaletypesexample;
 
+import android.R;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +42,8 @@ public class ScaleTypeFragment extends Fragment {
     private TextView mImageInfoTextView;
     private ImageView.ScaleType mScaleType;
 
+    private SharedPreferences mSharedPrefs;
+
     // Temporary button for querying sizes of ImageView and image
     private Button mTmpButton;
 
@@ -57,13 +60,18 @@ public class ScaleTypeFragment extends Fragment {
         Log.v(LOG_TAG, "onCreate of " + mScaleType.name());
     }
 
-    /* Called between onCreate and onActivityCreated */
+    /* Called after onCreate and before onActivityCreated */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView of " + mScaleType.name());
 
+        mSharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
+
         mRootView = inflater.inflate(R.layout.fragment, container, false);
         mImageView = (ImageView) mRootView.findViewById(R.id.imageview);
+
+
+
         mImageInfoTextView = (TextView) mRootView.findViewById(R.id.image_info);
 
         // Temporary button for querying sizes of ImageView and image
@@ -77,6 +85,11 @@ public class ScaleTypeFragment extends Fragment {
         mImageView.setScaleType(mScaleType);
 
         return mRootView;
+    }
+
+    // Read ImageView properties from SharedPreferences and apply them to the ImageView
+    private void configureImageView() {
+
     }
 
     @Override
@@ -104,26 +117,26 @@ public class ScaleTypeFragment extends Fragment {
         // to them, the full callback chain will be called (onCreate -> onStart -> onResume), so
         // in these fragments, the new image will be displayed too.
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
-        String prefImageKey = getString(R.string.pref_image_key);
-        String prefImageDefault = getString(R.string.pref_image_default);
-        Uri imageUri = Uri.parse(sharedPrefs.getString(prefImageKey, prefImageDefault));
-        // Check if we have a READ permission for this URI
-        int result = getActivity().checkUriPermission(
-                imageUri,
-                Binder.getCallingPid(),
-                Binder.getCallingUid(),
-                Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        Uri uri = Uri.parse(sharedPrefs.getString(getString(R.string.pref_image_key),
+                getString(R.string.pref_image_default)));
+        Log.v(LOG_TAG, "Image URI in SharedPreferences: " + uri.toString());
 
-        if (result == PackageManager.PERMISSION_GRANTED) loadWithPicasso(imageUri);
-        else {
-            // If we don't have a READ permission for the URI, load the default image. Attempting
-            // to load an image without permissions, would result in the following:
-            // setImageDrawable, setImageBitmap: raise "SecurityException: Permission Denial"
-            // setImageURI, Picasso: no exception raised, but no image loaded into ImageView
-            loadWithPicasso(Uri.parse(getString(R.string.pref_image_default)));
-            Toast.makeText(getActivity(), "No URI permission for " + imageUri.toString(), Toast.LENGTH_SHORT).show();
-            Log.v(LOG_TAG, mScaleType.name() + ": no URI permission for " + imageUri.toString());
+        // If NOT loading the default image, check if we have read URI permission for this image
+        if (!uri.toString().equals(getString(R.string.pref_image_default))) {
+            int readPerm = getActivity().checkUriPermission(uri, Binder.getCallingPid(),
+                    Binder.getCallingUid(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (readPerm != PackageManager.PERMISSION_GRANTED) {
+                // We get here if we don't have a read URI permission for this image, or if the
+                // image has been deleted. In any case, load the default image instead. Attempting
+                // to load an image without URI read permission, would result in the following:
+                // setImageDrawable, setImageBitmap: raise "SecurityException: Permission Denial"
+                // setImageURI, Picasso: no exception raised, but no image loaded into ImageView
+                Toast.makeText(getActivity(), "No URI permission for " + uri.toString(), Toast.LENGTH_SHORT).show();
+                Log.v(LOG_TAG, mScaleType.name() + ": no URI permission for " + uri.toString());
+                uri = Uri.parse(getString(R.string.pref_image_default));
+            }
         }
+        loadWithPicasso(uri);
     }
 
     // Throws permission denial exception
@@ -191,16 +204,15 @@ public class ScaleTypeFragment extends Fragment {
 
     private void setImageInfoText() {
 
-        /* Width and height of the ImageView */
+        /* Width and height (as drawn on screen) of the ImageView */
         int widthView = mImageView.getWidth();
         int heightView = mImageView.getHeight();
 
-        /* Width and height of the ORIGINAL image */
+        /* ORIGINAL width and height of the image (without any scaling) */
         int widthImageOrig = mImageView.getDrawable().getIntrinsicWidth();
         int heightImageOrig = mImageView.getDrawable().getIntrinsicHeight();
 
-
-        /* Width and height of the image after all scaling done by the ImageView */
+        /* Width and height of the image after scaling (done by the ImageView) */
         int widthImageScaled;
         int heightImageScaled;
         Matrix matrix = mImageView.getImageMatrix();
@@ -218,12 +230,13 @@ public class ScaleTypeFragment extends Fragment {
         }
         else {
             // For the FIT_XY scale type, the transformation matrix is not used, but the bounds
-            // of the Drawable (image) are directly set to fill the ImageView. Thus, for getting
-            // the scales, we need to directly query width and height of the drawable.
+            // of the Drawable (image) are directly set to equal the bounds of the ImageView.
             Drawable drawable = mImageView.getDrawable();
             Rect rect = drawable.getBounds();
             widthImageScaled = rect.width();
             heightImageScaled = rect.height();
+            //widthImageScaled = widthView;
+            //heightImageScaled = heightView;
         }
 
         Log.v(LOG_TAG, "Matrix: " + matrix + " of " + mScaleType.name());
