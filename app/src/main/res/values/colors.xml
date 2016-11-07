@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!-- Android Studio Default -->
+    <!--<color name="colorPrimary">#3F51B5</color>-->
+    <!--<color name="colorPrimaryDark">#303F9F</color>-->
+    <!--<color name="colorAccent">#FF4081</color>-->
+
+    <!-- Colours from https://material.google.com/style/color.html#color-color-palette -->
+    <color name="colorPrimary">#FFEB3B</color>      <!-- Yellow 500 -->
+    <color name="colorPrimaryDark">#FBC02D</color>  <!-- Yellow 700 -->
+    <color name="colorAccent">#F50057</color>       <!-- Pink A400 -->
 </resources>

@@ -2,6 +2,7 @@ package org.weibeld.example.imageviewscaletypesexample;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -107,14 +108,17 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
                 return true;
             case R.id.action_edit_image_view:
+                boolean showAsDialog = true;
                 EditImageViewDialog dialog = new EditImageViewDialog();
-                dialog.show(getFragmentManager(),"tag");
-//                FragmentManager fragmentManager = getFragmentManager();
-//                FragmentTransaction transaction = fragmentManager.beginTransaction();
-//                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-//                transaction.add(android.R.id.content, dialog).addToBackStack(null).commit();
-                //transaction.addToBackStack(null);
-                //dialog.show(transaction, "tag");
+                if (showAsDialog) {
+                    dialog.show(getFragmentManager(),"tag");
+                }
+                else {
+                    FragmentManager fm = getFragmentManager();
+                    FragmentTransaction trans = fm.beginTransaction();
+                    trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    trans.add(android.R.id.content, dialog).addToBackStack(null).commit();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
