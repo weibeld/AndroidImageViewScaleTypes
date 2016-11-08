@@ -1,4 +1,4 @@
-package org.weibeld.example.imageviewscaletypesexample;
+package org.weibeld.example.imageviewscaletypes;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

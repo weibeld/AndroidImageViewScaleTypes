@@ -1,8 +1,7 @@
-package org.weibeld.example.imageviewscaletypesexample;
+package org.weibeld.example.imageviewscaletypes;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -82,10 +81,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
         switch (item.getItemId()) {
             case R.id.action_choose_image:
                 // Launch intent to pick an image from a ContentProvider or DocumentsProvider
-                Intent intent = new Intent();
+                intent = new Intent();
                 // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
                 // https://developer.android.com/guide/topics/providers/document-provider.html#client
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -108,17 +108,24 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
                 return true;
             case R.id.action_edit_image_view:
-                boolean showAsDialog = true;
-                EditImageViewDialog dialog = new EditImageViewDialog();
-                if (showAsDialog) {
-                    dialog.show(getFragmentManager(),"tag");
-                }
-                else {
-                    FragmentManager fm = getFragmentManager();
-                    FragmentTransaction trans = fm.beginTransaction();
-                    trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                    trans.add(android.R.id.content, dialog).addToBackStack(null).commit();
-                }
+//                boolean showAsDialog = true;
+//                EditImageViewDialog dialog = new EditImageViewDialog();
+//                if (showAsDialog) {
+//                    dialog.show(getFragmentManager(),"tag");
+//                }
+//                else {
+//                    FragmentManager fm = getFragmentManager();
+//                    FragmentTransaction trans = fm.beginTransaction();
+//                    trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//                    trans.add(android.R.id.content, dialog).addToBackStack(null).commit();
+//                }
+//                EditImageViewFragment frag = new EditImageViewFragment();
+//                FragmentTransaction trans = getFragmentManager().beginTransaction();
+//                trans.add(android.R.id.content, frag).addToBackStack(null).commit();
+
+                intent = new Intent(this, EditImageViewActivity.class);
+                startActivity(intent);
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

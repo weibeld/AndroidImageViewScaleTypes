@@ -1,4 +1,4 @@
-package org.weibeld.example.imageviewscaletypesexample;
+package org.weibeld.example.imageviewscaletypes;
 
 import android.app.Fragment;
 import android.content.Context;
@@ -67,7 +67,7 @@ public class ScaleTypeFragment extends Fragment {
         mSharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
 
         mRootView = inflater.inflate(R.layout.fragment, container, false);
-        mImageView = (ImageView) mRootView.findViewById(R.id.imageview);
+        mImageView = (ImageView) mRootView.findViewById(R.id.image_view);
 
 
 
@@ -241,9 +241,9 @@ public class ScaleTypeFragment extends Fragment {
         Log.v(LOG_TAG, "Matrix: " + matrix + " of " + mScaleType.name());
 
         String str =
-                getString(R.string.imageview_size) + " " + formatSize(widthView, heightView) + "\n"
-                + getString(R.string.image_size_original) + " " + formatSize(widthImageOrig, heightImageOrig) + "\n"
-                + getString(R.string.image_size_displayed) + " " + formatSize(widthImageScaled, heightImageScaled) + "\n"
+                getString(R.string.info_image_view) + " " + formatSize(widthView, heightView) + "\n"
+                + getString(R.string.info_original_image) + " " + formatSize(widthImageOrig, heightImageOrig) + "\n"
+                + getString(R.string.info_displayed_image) + " " + formatSize(widthImageScaled, heightImageScaled) + "\n"
                 + "Matrix:" + "\n"
                 + formatMatrix(matrix);
 

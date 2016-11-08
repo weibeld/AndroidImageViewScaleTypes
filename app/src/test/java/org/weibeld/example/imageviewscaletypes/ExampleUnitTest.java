@@ -1,4 +1,4 @@
-package org.weibeld.example.imageviewscaletypesexample;
+package org.weibeld.example.imageviewscaletypes;
 
 import org.junit.Test;
 

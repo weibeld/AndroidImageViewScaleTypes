@@ -2,18 +2,22 @@
     <!-- TRANSLATABLE STRINGS -->
 
     <!-- Image size info text -->
-    <string name="imageview_size">ImageView:</string>
-    <string name="image_size_original">Original image:</string>
-    <string name="image_size_displayed">Scaled image:</string>
+    <string name="info_image_view">ImageView:</string>
+    <string name="info_original_image">Original image:</string>
+    <string name="info_displayed_image">Displayed image:</string>
 
     <!-- Options menu actions (app bar) -->
     <string name="action_choose_image">Choose Image</string>
     <string name="action_edit_image_view">Edit ImageView</string>
 
-    <!-- Edit ImageView dialog -->
-    <string name="dialog_title_image_view">Edit ImageView</string>
+    <!-- EditImageView Activity -->
+    <string name="button_discard">Discard changes and go back</string>
+    <string name="button_save">Save</string>
+    <string name="button_reset">Reset Defaults</string>
+    <string name="toast_no_changes">No changes to apply</string>
+    <string name="toast_changes_applied">Properties applied</string>
+    <string name="back_dialog_message">Discard current changes?</string>
+    <string name="back_dialog_pos_button">Discard</string>
+    <string name="back_dialog_neg_button">Cancel</string>
 
-    <!-- Dialog buttons -->
-    <string name="dialog_save">Save</string>
-    <string name="dialog_cancel">Cancel</string>
 </resources>

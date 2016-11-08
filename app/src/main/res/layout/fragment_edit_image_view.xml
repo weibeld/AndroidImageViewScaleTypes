@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    >
+
+    <!--<android.support.design.widget.AppBarLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content">-->
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/edit_image_view_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="12dp"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="normal"
+            android:textColor="#000000"
+            android:text="Title"/>
+        </android.support.v7.widget.Toolbar>
+    <!--</android.support.design.widget.AppBarLayout>-->
+
+    <!-- android:layout_width -->
+    <TextView
+        android:id="@+id/layout_width_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/layout_width_label"
+        />
+    <EditText
+        android:id="@+id/layout_width_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <!-- android:layout_height -->
+    <TextView
+        android:id="@+id/layout_height_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/layout_height_label"
+        />
+    <EditText
+        android:id="@+id/layout_height_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <!-- android:background -->
+    <TextView
+        android:id="@+id/background_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/background_label"
+        />
+    <EditText
+        android:id="@+id/background_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <!-- android:adjustViewBounds -->
+    <TextView
+        android:id="@+id/adjustViewBounds_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/adjustViewBounds_label"
+        />
+    <EditText
+        android:id="@+id/adjustViewBounds_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <!-- android:maxWidth -->
+    <TextView
+        android:id="@+id/maxWidth_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/maxWidth_label"
+        />
+    <EditText
+        android:id="@+id/maxWidth_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <!-- android:maxHeight -->
+    <TextView
+        android:id="@+id/maxHeight_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/maxHeight_label"
+        />
+    <EditText
+        android:id="@+id/maxHeight_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <Button
+        android:id="@+id/dialog_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button" />
+
+</LinearLayout>
