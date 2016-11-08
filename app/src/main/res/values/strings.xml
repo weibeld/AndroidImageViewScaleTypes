@@ -14,10 +14,10 @@
     <string name="button_discard">Discard changes and go back</string>
     <string name="button_save">Save</string>
     <string name="button_reset">Reset Defaults</string>
-    <string name="toast_no_changes">No changes to apply</string>
-    <string name="toast_changes_applied">Properties applied</string>
-    <string name="back_dialog_message">Discard current changes?</string>
-    <string name="back_dialog_pos_button">Discard</string>
-    <string name="back_dialog_neg_button">Cancel</string>
+    <string name="toast_no_changes">No changes applied</string>
+    <string name="toast_changes_applied">Settings saved and applied</string>
+    <string name="exit_dialog_message">Discard changes?</string>
+    <string name="exit_dialog_pos_button">Discard</string>
+    <string name="exit_dialog_neg_button">Cancel</string>
 
 </resources>
