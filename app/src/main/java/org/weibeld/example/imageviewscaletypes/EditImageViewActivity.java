@@ -7,7 +7,12 @@ import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ListPopupWindow;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +37,16 @@ public class EditImageViewActivity extends AppCompatActivity {
     private String[] mPrefDefaults;
     private TextView[] mTextFields;
 
+    private ListPopupWindow popupWindow;
+
+    private final String[] LAYOUT_WIDTH_HEIGHT = new String[] {
+            "match_parent", "wrap_content"
+    };
+
+    private final String[] BOOLEAN = new String[] {
+            "true", "false"
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +66,78 @@ public class EditImageViewActivity extends AppCompatActivity {
 
         initArrays();
         loadValues();
+
+
+        popupWindow = new ListPopupWindow(this);
+        Log.v(LOG_TAG, "vertical offset: " + popupWindow.getVerticalOffset());
+        popupWindow.setVerticalOffset(-10);
+        popupWindow.setWidth(ListPopupWindow.WRAP_CONTENT);
+        popupWindow.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, LAYOUT_WIDTH_HEIGHT));
+        popupWindow.setAnchorView(mBind.layoutHeightEdit);
+        popupWindow.setModal(true);
+        popupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mBind.layoutHeightEdit.setText(LAYOUT_WIDTH_HEIGHT[position]);
+                popupWindow.dismiss();
+            }
+        });
+
+
+        mBind.layoutHeightEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.v(LOG_TAG, "onClick");
+            }
+        });
+
+        mBind.layoutHeightEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    Log.v(LOG_TAG, "got focus");
+                else
+                    Log.v(LOG_TAG, "lost focus");
+            }
+        });
+
+
+
+        mBind.layoutHeightEdit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                final int DRAWABLE_LEFT = 0;
+                final int DRAWABLE_TOP = 1;
+                final int DRAWABLE_RIGHT = 2;
+                final int DRAWABLE_BOTTOM = 3;
+
+                Log.v(LOG_TAG, "onTouch");
+
+                // Check if touch point is in the area of the right button
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Log.v(LOG_TAG, "onTouch DOWN");
+                    if(event.getX() >= (mBind.layoutHeightEdit.getWidth() - mBind.layoutHeightEdit
+                            .getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                        mBind.layoutHeightEdit.requestFocus();
+                        //mBind.layoutHeightEdit.setSelection(mBind.layoutHeightEdit.getText().length()-1);
+                        popupWindow.show();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+
+
+
+//        mBind.adjustViewBoundsSpinner.setAdapter(new ArrayAdapter<String>(this,
+//                android.R.layout.simple_spinner_dropdown_item, BOOLEAN));
+
+        //mBind.adjustViewBoundsEdit.setInputType(InputType.TYPE_NULL);
+        mBind.adjustViewBoundsEdit.setKeyListener(null);
+        //mBind.adjustViewBoundsEdit.setEnabled(false);
     }
 
     // Arrays serving as mapping between SharedPreference keys, default values, and UI text fields

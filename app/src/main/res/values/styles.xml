@@ -10,12 +10,42 @@
     <!-- Base application theme with some UI debugging aids -->
     <style name="MyAppThemeDebug" parent="MyAppTheme">
         <!-- Overriding default styles for specific Views -->
-        <item name="android:textViewStyle">@style/MyTextViewStyle</item>
+        <item name="android:textViewStyle">@style/BorderedTextView</item>
     </style>
 
-    <!-- Border around TextViews -->
-    <style name="MyTextViewStyle" parent="android:Widget.TextView">
-        <item name="android:background">@drawable/border_1</item>
+    <!-- TextView with a thin border around it -->
+    <style name="BorderedTextView" parent="android:Widget.TextView">
+        <item name="android:background">@drawable/border</item>
     </style>
+
+    <!-- Base style for EditTexts in EditImageViewActivity -->
+    <style name="EditImageViewTextField" parent="android:Widget.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:inputType">textNoSuggestions</item>
+        <item name="android:selectAllOnFocus">true</item>
+        <item name="android:imeOptions">actionNone|flagNoExtractUi</item>
+    </style>
+
+    <!-- EditTexts with an expand dropdown icon on the right -->
+    <style name="EditImageViewTextField.Dropdown" parent="EditImageViewTextField">
+        <item name="android:drawableRight">@drawable/ic_expand_more_black_24dp</item>
+    </style>
+
+    <!-- EditText with a colour picker icon on the right -->
+    <style name="EditImageViewTextField.Color" parent="EditImageViewTextField">
+        <item name="android:drawableRight">@drawable/ic_tune_black_24dp</item>
+    </style>
+
+    <!-- Style for the labels of the EditTexts in EditImageViewActivity -->
+    <style name="EditImageViewTextLabel" parent="android:Widget.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+
 
 </resources>
