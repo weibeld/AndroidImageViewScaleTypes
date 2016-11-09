@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageViewBinding;
@@ -26,26 +26,30 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     private final String LOG_TAG = EditImageViewActivity.class.getSimpleName();
 
+    private final String[] VALUES_DIMEN_WITH_KEYWORDS = new String[] {
+            "wrap_content", "match_parent"
+    };
+
+    private final String[] VALUES_BOOL = new String[] {
+            "true", "false"
+    };
+
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
     // Reference to the SharedPreferences of this Activity
     SharedPreferences mPrefs;
 
-    // Arrays for looping through text fields and SharedPreferences
+    // Arrays for mapping text fields to SharedPreferences and  vice versa
     private String[] mPrefKeys;
     private String[] mPrefDefaults;
-    private TextView[] mTextFields;
+    private EditText[] mTextFields;
 
-    private ListPopupWindow popupWindow;
+    // Arrays for setting up the popup icons in the text fields
+    private EditText[] mPopupTextFields;
+    private String[][] mPopupContents;
+    private ListPopupWindow[] mPopupWindows;
 
-    private final String[] LAYOUT_WIDTH_HEIGHT = new String[] {
-            "match_parent", "wrap_content"
-    };
-
-    private final String[] BOOLEAN = new String[] {
-            "true", "false"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,79 +69,14 @@ public class EditImageViewActivity extends AppCompatActivity {
         });
 
         initArrays();
+        createPopupWindows();
+        addPopupIconListeners();
+
+        // Settings which don't work from the layout XML file (possible Android bugs)
+        mBind.adjustViewBoundsEdit.setKeyListener(null);  // Make field non-editable
+        mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);
+
         loadValues();
-
-
-        popupWindow = new ListPopupWindow(this);
-        Log.v(LOG_TAG, "vertical offset: " + popupWindow.getVerticalOffset());
-        popupWindow.setVerticalOffset(-10);
-        popupWindow.setWidth(ListPopupWindow.WRAP_CONTENT);
-        popupWindow.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, LAYOUT_WIDTH_HEIGHT));
-        popupWindow.setAnchorView(mBind.layoutHeightEdit);
-        popupWindow.setModal(true);
-        popupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mBind.layoutHeightEdit.setText(LAYOUT_WIDTH_HEIGHT[position]);
-                popupWindow.dismiss();
-            }
-        });
-
-
-        mBind.layoutHeightEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.v(LOG_TAG, "onClick");
-            }
-        });
-
-        mBind.layoutHeightEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus)
-                    Log.v(LOG_TAG, "got focus");
-                else
-                    Log.v(LOG_TAG, "lost focus");
-            }
-        });
-
-
-
-        mBind.layoutHeightEdit.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                final int DRAWABLE_LEFT = 0;
-                final int DRAWABLE_TOP = 1;
-                final int DRAWABLE_RIGHT = 2;
-                final int DRAWABLE_BOTTOM = 3;
-
-                Log.v(LOG_TAG, "onTouch");
-
-                // Check if touch point is in the area of the right button
-                if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                    Log.v(LOG_TAG, "onTouch DOWN");
-                    if(event.getX() >= (mBind.layoutHeightEdit.getWidth() - mBind.layoutHeightEdit
-                            .getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
-                        mBind.layoutHeightEdit.requestFocus();
-                        //mBind.layoutHeightEdit.setSelection(mBind.layoutHeightEdit.getText().length()-1);
-                        popupWindow.show();
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
-
-
-
-
-//        mBind.adjustViewBoundsSpinner.setAdapter(new ArrayAdapter<String>(this,
-//                android.R.layout.simple_spinner_dropdown_item, BOOLEAN));
-
-        //mBind.adjustViewBoundsEdit.setInputType(InputType.TYPE_NULL);
-        mBind.adjustViewBoundsEdit.setKeyListener(null);
-        //mBind.adjustViewBoundsEdit.setEnabled(false);
     }
 
     // Arrays serving as mapping between SharedPreference keys, default values, and UI text fields
@@ -158,7 +97,7 @@ public class EditImageViewActivity extends AppCompatActivity {
                 getString(R.string.pref_maxWidth_default),
                 getString(R.string.pref_maxHeight_default)
         };
-        mTextFields = new TextView[] {
+        mTextFields = new EditText[] {
                 mBind.layoutWidthEdit,
                 mBind.layoutHeightEdit,
                 mBind.backgroundEdit,
@@ -166,7 +105,63 @@ public class EditImageViewActivity extends AppCompatActivity {
                 mBind.maxWidthEdit,
                 mBind.maxHeightEdit
         };
+        mPopupTextFields = new EditText[] {
+                mBind.layoutWidthEdit,
+                mBind.layoutHeightEdit,
+                mBind.adjustViewBoundsEdit
+        };
+        mPopupContents = new String[][] {
+                VALUES_DIMEN_WITH_KEYWORDS,
+                VALUES_DIMEN_WITH_KEYWORDS,
+                VALUES_BOOL
+        };
     }
+
+    private void createPopupWindows() {
+        mPopupWindows = new ListPopupWindow[mPopupTextFields.length];
+        for (int i = 0; i < mPopupTextFields.length; i++) {
+            final int I = i;
+            mPopupWindows[i] = new ListPopupWindow(this);
+            mPopupWindows[i].setAnchorView(mPopupTextFields[i]);
+            mPopupWindows[i].setModal(true);
+            mPopupWindows[i].setVerticalOffset(-10);
+            mPopupWindows[i].setAdapter(new ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    mPopupContents[i]
+            ));
+            mPopupWindows[i].setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Log.v(LOG_TAG, "parent: " + parent + "\nview: " + view + "\nindex: " + I);
+                    mPopupTextFields[I].setText(mPopupContents[I][position]);
+                    mPopupWindows[I].dismiss();
+                }
+            });
+        }
+    }
+
+    private void addPopupIconListeners() {
+        for (int i = 0; i < mPopupTextFields.length; i++) {
+            final int I = i;
+            mPopupTextFields[i].setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        int textFieldWidth = mPopupTextFields[I].getWidth();
+                        int iconWidth = mPopupTextFields[I].getCompoundDrawables()[2].getBounds().width();
+                        if (event.getX() >= textFieldWidth - iconWidth) {
+                            mPopupTextFields[I].requestFocus();
+                            mPopupWindows[I].show();
+                        }
+                    }
+                    return false;
+                }
+            });
+        }
+    }
+
+
 
     // Get the SharedPreference entry at a specific index in the arrays initialised by initArrays
     private String getPref(int index) {
