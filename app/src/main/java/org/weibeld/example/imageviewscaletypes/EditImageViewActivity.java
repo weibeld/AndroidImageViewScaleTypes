@@ -8,6 +8,8 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -71,10 +73,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         initArrays();
         createPopupWindows();
         addPopupIconListeners();
-
-        // Settings which don't work from the layout XML file (possible Android bugs)
-        mBind.adjustViewBoundsEdit.setKeyListener(null);  // Make field non-editable
-        mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);
+        tweakAdjustViewBoundsField();  // Must be called before loadValues()
 
         loadValues();
     }
@@ -161,6 +160,31 @@ public class EditImageViewActivity extends AppCompatActivity {
         }
     }
 
+    private void tweakAdjustViewBoundsField() {
+        mBind.adjustViewBoundsEdit.setKeyListener(null);  // Make field non-editable
+        mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);
+        mBind.adjustViewBoundsEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (mBind.adjustViewBoundsEdit.getText().toString().equals("true")) {
+                    mBind.maxWidthLabel.setEnabled(true);
+                    mBind.maxWidthEdit.setEnabled(true);
+                    mBind.maxHeightEdit.setEnabled(true);
+                    mBind.maxHeightLabel.setEnabled(true);
+                }
+                else {
+                    mBind.maxWidthLabel.setEnabled(false);
+                    mBind.maxWidthEdit.setEnabled(false);
+                    mBind.maxHeightEdit.setEnabled(false);
+                    mBind.maxHeightLabel.setEnabled(false);
+                }
+            }
+        });
+    }
 
 
     // Get the SharedPreference entry at a specific index in the arrays initialised by initArrays
