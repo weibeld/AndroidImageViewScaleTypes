@@ -22,7 +22,7 @@ public class Data {
             ImageView.ScaleType.MATRIX,
     };
 
-    // Page position argument passed to the ScaleTypeFragment
+    // Page position argument passed to the PageFragment
     public static final String ARG_POSITION = "position";
 
     // Code for the choose image intent

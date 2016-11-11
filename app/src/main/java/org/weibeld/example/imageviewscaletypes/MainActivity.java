@@ -49,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
         // Return the Fragment at the given position to the ViewPager
         @Override
         public Fragment getItem(int position) {
-            // The Fragment we return is a ScaleTypeFragment that is provided with its position
+            // The Fragment we return is a PageFragment that is provided with its position
             // in the collection of pages, so that it knows which scale type it represents.
-            Fragment fragment = new ScaleTypeFragment();
+            Fragment fragment = new PageFragment();
             Bundle arg = new Bundle();
             arg.putInt(Data.ARG_POSITION, position);
             fragment.setArguments(arg);

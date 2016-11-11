@@ -1,7 +1,6 @@
 package org.weibeld.example.imageviewscaletypes;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
@@ -28,12 +27,16 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     private final String LOG_TAG = EditImageViewActivity.class.getSimpleName();
 
+
+    private final String TRUE = "true";
+    private final String FALSE = "false";
+
     private final String[] VALUES_DIMEN_WITH_KEYWORDS = new String[] {
             "wrap_content", "match_parent"
     };
 
     private final String[] VALUES_BOOL = new String[] {
-            "true", "false"
+            TRUE, FALSE
     };
 
     // Binding to the named XML layout UI elements (Data Binding Library)
@@ -58,7 +61,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBind = DataBindingUtil.setContentView(this, R.layout.activity_edit_image_view);
 
-        mPrefs = getPreferences(Context.MODE_PRIVATE);
+        mPrefs = Util.getSharedPrefs(this);
 
         // Set up Toolbar as app bar and define what to do when the X icon is clicked
         // Possible Android bug: setNavigationOnClickListener must come AFTER setSupportActionBar
@@ -170,7 +173,7 @@ public class EditImageViewActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                if (mBind.adjustViewBoundsEdit.getText().toString().equals("true")) {
+                if (mBind.adjustViewBoundsEdit.getText().toString().equals(TRUE)) {
                     mBind.maxWidthLabel.setEnabled(true);
                     mBind.maxWidthEdit.setEnabled(true);
                     mBind.maxHeightEdit.setEnabled(true);

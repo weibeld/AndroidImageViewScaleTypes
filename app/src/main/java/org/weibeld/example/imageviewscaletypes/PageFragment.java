@@ -14,6 +14,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,8 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
+import org.weibeld.example.imageviewscaletypes.databinding.FragmentPageBinding;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,12 +35,14 @@ import java.io.InputStream;
  * Created by dw on 24/10/16.
  */
 
-public class ScaleTypeFragment extends Fragment {
+public class PageFragment extends Fragment {
 
-    private final String LOG_TAG = ScaleTypeFragment.class.getSimpleName();
+    private final String LOG_TAG = PageFragment.class.getSimpleName();
+
+    // Binding to layout elements through Data Binding Library
+    FragmentPageBinding mBind;
 
     private View mRootView;
-    private ImageView mImageView;
     private TextView mImageInfoTextView;
     private ImageView.ScaleType mScaleType;
 
@@ -46,6 +51,7 @@ public class ScaleTypeFragment extends Fragment {
     // Temporary button for querying sizes of ImageView and image
     private Button mTmpButton;
 
+    // on Attach --> onCreate
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -53,65 +59,94 @@ public class ScaleTypeFragment extends Fragment {
         Log.v(LOG_TAG, "onAttach of " + mScaleType.name());
     }
 
+    // onAttach --> onCreate --> onCreateView
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v(LOG_TAG, "onCreate of " + mScaleType.name());
     }
 
-    /* Called after onCreate and before onActivityCreated */
+    // onCreate --> onCreateView --> onActivityCreated
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView of " + mScaleType.name());
+        
+        mRootView = inflater.inflate(R.layout.fragment_page, container, false);
+        mBind = FragmentPageBinding.bind(mRootView);
 
-        mSharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
-
-        mRootView = inflater.inflate(R.layout.fragment, container, false);
-        mImageView = (ImageView) mRootView.findViewById(R.id.image_view);
-
-
-
-        mImageInfoTextView = (TextView) mRootView.findViewById(R.id.image_info);
+        mSharedPrefs = Util.getSharedPrefs(getActivity());
 
         // Temporary button for querying sizes of ImageView and image
-        mTmpButton = (Button) mRootView.findViewById(R.id.button);
-        mTmpButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                setImageInfoText();
-            }
-        });
+//        mBind.button.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                setImageInfoText();
+//            }
+//        });
 
-        mImageView.setScaleType(mScaleType);
+        mBind.imageView.setScaleType(mScaleType);
 
         return mRootView;
     }
 
     // Read ImageView properties from SharedPreferences and apply them to the ImageView
-    private void configureImageView() {
+    private void setupImageView() {
+        String layoutWidthStr = mSharedPrefs.getString(getString(R.string.pref_layout_width_key), getString(R.string.pref_layout_width_default));
+        switch (layoutWidthStr) {
+            case "wrap_content":
+                mBind.imageView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                break;
+            case "match_parent":
+                mBind.imageView.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                break;
+            default:
+                Util.Dimension dim = Util.parseDimension(layoutWidthStr);
+                int pixels = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
+                mBind.imageView.getLayoutParams().width = pixels;
+        }
+        String layoutHeightStr = mSharedPrefs.getString(getString(R.string.pref_layout_height_key), getString(R.string.pref_layout_height_default));
+        switch (layoutHeightStr) {
+            case "wrap_content":
+                mBind.imageView.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                break;
+            case "match_parent":
+                mBind.imageView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+                break;
+            default:
+                Util.Dimension dim = Util.parseDimension(layoutHeightStr);
+                int pixels = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
+                mBind.imageView.getLayoutParams().height = pixels;
+        }
 
+        mRootView.requestLayout();
     }
 
+    // onCreateView --> onActivityCreated --> onViewStateRestored
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.v(LOG_TAG, "onActivityCreated of " + mScaleType.name());
     }
 
+    // onViewStateRestored --> onStart --> onResume
     @Override
     public void onStart() {
         super.onStart();
         Log.v(LOG_TAG, "onStart of " + mScaleType.name());
+        setupImageView();
     }
 
+    // onStart --> onResume --> onPause
     @Override
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "onResume of " + mScaleType.name());
+
+
         // Read the URI of the image to display from the SharedPreferences of the MainActivity,
         // and load this image into the ImageView. This is done in onResume so that the image is
         // updated automatically when the user returns from the "choose image" activity. Since
-        // the choose image activity obscures this fragment, it is guaranteed that onResume is
-        // called as soon as this fragment gets focus again (the same applies to the next and the
+        // the choose image activity obscures this fragment_page, it is guaranteed that onResume is
+        // called as soon as this fragment_page gets focus again (the same applies to the next and the
         // previous fragments of the ViewPager). For all the other fragments, when the user flips
         // to them, the full callback chain will be called (onCreate -> onStart -> onResume), so
         // in these fragments, the new image will be displayed too.
@@ -144,7 +179,7 @@ public class ScaleTypeFragment extends Fragment {
         try {
             InputStream inputStream = getActivity().getContentResolver().openInputStream(imageUri);
             Drawable drawable = Drawable.createFromStream(inputStream, imageUri.toString());
-            mImageView.setImageDrawable(drawable);
+            mBind.imageView.setImageDrawable(drawable);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -156,7 +191,7 @@ public class ScaleTypeFragment extends Fragment {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with setImageBitmap " + imageUri.toString());
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
-            mImageView.setImageBitmap(bitmap);
+            mBind.imageView.setImageBitmap(bitmap);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -166,7 +201,7 @@ public class ScaleTypeFragment extends Fragment {
     // Catches permission denial exception and prints stacktrace, no image loaded into the ImageView
     private void loadWithSetImageURI(Uri imageUri) {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with setImageURI " + imageUri.toString());
-        mImageView.setImageURI(imageUri);
+        mBind.imageView.setImageURI(imageUri);
     }
 
     // Catches permission denial exception but does not print any log output about it, no image
@@ -178,9 +213,10 @@ public class ScaleTypeFragment extends Fragment {
                 .with(getActivity())
                 .load(imageUri)
                 //.resize(1850, 2780)
-                .into(mImageView);
+                .into(mBind.imageView);
     }
 
+    // onResume --> onPause --> onStop
     @Override
     public void onPause() {
         super.onPause();
@@ -188,12 +224,14 @@ public class ScaleTypeFragment extends Fragment {
 
     }
 
+    // onPause --> onStop --> onDestroyView
     @Override
     public void onStop() {
         super.onStop();
         Log.v(LOG_TAG, "onStop of " + mScaleType.name());
     }
 
+    // onDestroyView --> onDestroy --> onDetach
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -204,17 +242,17 @@ public class ScaleTypeFragment extends Fragment {
     private void setImageInfoText() {
 
         /* Width and height (as drawn on screen) of the ImageView */
-        int widthView = mImageView.getWidth();
-        int heightView = mImageView.getHeight();
+        int widthView = mBind.imageView.getWidth();
+        int heightView = mBind.imageView.getHeight();
 
         /* ORIGINAL width and height of the image (without any scaling) */
-        int widthImageOrig = mImageView.getDrawable().getIntrinsicWidth();
-        int heightImageOrig = mImageView.getDrawable().getIntrinsicHeight();
+        int widthImageOrig = mBind.imageView.getDrawable().getIntrinsicWidth();
+        int heightImageOrig = mBind.imageView.getDrawable().getIntrinsicHeight();
 
         /* Width and height of the image after scaling (done by the ImageView) */
         int widthImageScaled;
         int heightImageScaled;
-        Matrix matrix = mImageView.getImageMatrix();
+        Matrix matrix = mBind.imageView.getImageMatrix();
         if (mScaleType != ImageView.ScaleType.FIT_XY) {
             // For all scale types except FIT_XY, the scale that the ImageView applies to width
             // and height of the original image is declared as MSCALE_X and MSCALE_Y in the
@@ -230,7 +268,7 @@ public class ScaleTypeFragment extends Fragment {
         else {
             // For the FIT_XY scale type, the transformation matrix is not used, but the bounds
             // of the Drawable (image) are directly set to equal the bounds of the ImageView.
-            Drawable drawable = mImageView.getDrawable();
+            Drawable drawable = mBind.imageView.getDrawable();
             Rect rect = drawable.getBounds();
             widthImageScaled = rect.width();
             heightImageScaled = rect.height();
@@ -247,7 +285,7 @@ public class ScaleTypeFragment extends Fragment {
                 + "Matrix:" + "\n"
                 + formatMatrix(matrix);
 
-        mImageInfoTextView.setText(str);
+        mBind.imageInfo.setText(str);
     }
 
     private String formatSize(int width, int height) {

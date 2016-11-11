@@ -6,14 +6,15 @@
     <string name="app_name">ImageView Scale Types</string>
 
     <!-- SharedPreferences -->
+    <string name="main_shared_prefs">main</string>
     <!-- Image URI -->
     <string name="pref_image_key">image</string>
     <string name="pref_image_default">android.resource://org.weibeld.example.imageviewscaletypesexample/drawable/default_image</string>
     <!-- ImageView properties -->
     <string name="pref_layout_width_key">layout_width</string>
-    <string name="pref_layout_width_default">300dp</string>
+    <string name="pref_layout_width_default">50dp</string>
     <string name="pref_layout_height_key">layout_height</string>
-    <string name="pref_layout_height_default">200dp</string>
+    <string name="pref_layout_height_default">50dp</string>
     <string name="pref_background_key">background</string>
     <!-- background_default: use @color/colorAccent when reading SharedPreferences -->
     <string name="pref_adjustViewBounds_key">adjustViewBounds</string>

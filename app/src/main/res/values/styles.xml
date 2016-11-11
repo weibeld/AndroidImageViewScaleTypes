@@ -13,9 +13,9 @@
         <item name="android:textViewStyle">@style/BorderedTextView</item>
     </style>
 
-    <!-- TextView with a thin border around it -->
+    <!-- TextView with a thin border_thin around it -->
     <style name="BorderedTextView" parent="android:Widget.TextView">
-        <item name="android:background">@drawable/border</item>
+        <item name="android:background">@drawable/border_thin</item>
     </style>
 
     <!-- Base style for EditTexts in EditImageViewActivity -->

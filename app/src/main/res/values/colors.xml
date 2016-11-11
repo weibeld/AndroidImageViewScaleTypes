@@ -6,7 +6,10 @@
     <!--<color name="colorAccent">#FF4081</color>-->
 
     <!-- Colours from https://material.google.com/style/color.html#color-color-palette -->
-    <color name="colorPrimary">#FFEB3B</color>      <!-- Yellow 500 -->
-    <color name="colorPrimaryDark">#FBC02D</color>  <!-- Yellow 700 -->
-    <color name="colorAccent">#F50057</color>       <!-- Pink A400 -->
+    <color name="colorPrimaryVeryLight">#FFF9C4</color>  <!-- Yellow 100 -->
+    <color name="colorPrimaryLight">#FFF176</color>      <!-- Yellow 300 -->
+    <color name="colorPrimary">#FFEB3B</color>           <!-- Yellow 500 -->
+    <color name="colorPrimaryDark">#FBC02D</color>       <!-- Yellow 700 -->
+    <color name="colorAccent">#F50057</color>            <!-- Pink A400 -->
+    <color name="colorAccentLight">#FF80AB</color>       <!-- Pink A100 -->
 </resources>
