@@ -9,12 +9,12 @@
     <string name="main_shared_prefs">main</string>
     <!-- Image URI -->
     <string name="pref_image_key">image</string>
-    <string name="pref_image_default">android.resource://org.weibeld.example.imageviewscaletypesexample/drawable/default_image</string>
+    <string name="pref_image_default">android.resource://org.weibeld.example.imageviewscaletypes/drawable/default_image</string>
     <!-- ImageView properties -->
     <string name="pref_layout_width_key">layout_width</string>
-    <string name="pref_layout_width_default">50dp</string>
+    <string name="pref_layout_width_default">300dp</string>
     <string name="pref_layout_height_key">layout_height</string>
-    <string name="pref_layout_height_default">50dp</string>
+    <string name="pref_layout_height_default">300dp</string>
     <string name="pref_background_key">background</string>
     <!-- background_default: use @color/colorAccent when reading SharedPreferences -->
     <string name="pref_adjustViewBounds_key">adjustViewBounds</string>
@@ -27,7 +27,7 @@
     <!-- Edit ImageView Dialog -->
     <string name="layout_width_label">android:layout_width</string>
     <string name="layout_height_label">android:layout_height</string>
-    <string name="background_label">android:background (#[a]rgb)</string>
+    <string name="background_label">android:background (#[aa]rrggbb)</string>
     <string name="adjustViewBounds_label">android:adjustViewBounds</string>
     <string name="maxWidth_label">android:maxWidth</string>
     <string name="maxHeight_label">android:maxHeight</string>

@@ -4,77 +4,38 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.weibeld.example.imageviewscaletypes.databinding.ActivityMainBinding;
 import org.weibeld.util.Util;
 
 public class MainActivity extends AppCompatActivity {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
+    ActivityMainBinding mBind;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // Set the Toolbar as the app bar
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-
-        // For the tabs, connect the ViewPager to our custom PagerAdapter
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        viewPager.setAdapter(new ScaleTypePagerAdapter(getFragmentManager()));
-
-        // Populate and integrate the TabLayout with the ViewPager
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tablayout);
-        tabLayout.setupWithViewPager(viewPager);
-    }
-
-    /* PagerAdapter for supplying the ViewPager with the tab pages (Fragments) to display. */
-    public class ScaleTypePagerAdapter extends FragmentPagerAdapter {
-
-        public ScaleTypePagerAdapter(FragmentManager fragmentManager) {
-            super(fragmentManager);
-        }
-
-        // Return the Fragment at the given position to the ViewPager
-        @Override
-        public Fragment getItem(int position) {
-            // The Fragment we return is a PageFragment that is provided with its position
-            // in the collection of pages, so that it knows which scale type it represents.
-            Fragment fragment = new PageFragment();
-            Bundle arg = new Bundle();
-            arg.putInt(Data.ARG_POSITION, position);
-            fragment.setArguments(arg);
-            return fragment;
-        }
-
-        // Return the total number of pages
-        @Override
-        public int getCount() {
-            return Data.SCALE_TYPES.length;
-        }
-
-        // Return the title of the page at the provided position
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return Data.SCALE_TYPES[position].name();
-        }
-
+        mBind = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        setSupportActionBar(mBind.toolbar);
+        // Set our custom PagerAdapter as the adapter for the ViewPager
+        mBind.viewpager.setAdapter(new ScaleTypePagerAdapter(getFragmentManager()));
+        // Populate and connect the TabLayout with the ViewPager
+        mBind.tablayout.setupWithViewPager(mBind.viewpager);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Create the options (action) in the app bar as defined in menu/main.xml
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -82,29 +43,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+
             case R.id.action_choose_image:
-                // Launch intent to pick an image from a ContentProvider or DocumentsProvider
-                Intent intent = new Intent();
-                // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
-                // https://developer.android.com/guide/topics/providers/document-provider.html#client
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    // ACTION_OPEN_DOCUMENT was introduced in API level 19 (4.4 KitKat) together with
-                    // the Storage Access Framework (SAF). It launches a standard activity that shows
-                    // all the DocumentsProvider on the device and allows to choose a document from any
-                    // of them. A DocumentsProvider is a special type of ContentProvider.
-                    intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
-                    Log.v(LOG_TAG, "Using ACTION_OPEN_DOCUMENT");
-                }
-                else {
-                    // ACTION_GET_CONTENT launches the "best" app that provides a certain type of
-                    // content (e.g. MIME type image/*) and allows to choose an item from it. The URI
-                    // permissions for the selected file are only temporary.
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    Log.v(LOG_TAG, "Using ACTION_GET_CONTENT");
-                }
-                intent.setType("image/*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
+                launchImagePicker();
                 return true;
 
             case R.id.action_edit_image_view:
@@ -114,6 +55,31 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void launchImagePicker() {
+        // Launch intent to pick an image from a ContentProvider or DocumentsProvider
+        Intent intent = new Intent();
+        // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
+        // https://developer.android.com/guide/topics/providers/document-provider.html#client
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // ACTION_OPEN_DOCUMENT was introduced in API level 19 (4.4 KitKat) together with
+            // the Storage Access Framework (SAF). It launches a standard activity that shows
+            // all the DocumentsProvider on the device and allows to choose a document from any
+            // of them. A DocumentsProvider is a special type of ContentProvider.
+            intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+            Log.v(LOG_TAG, "Using ACTION_OPEN_DOCUMENT");
+        }
+        else {
+            // ACTION_GET_CONTENT launches the "best" app that provides a certain type of
+            // content (e.g. MIME type image/*) and allows to choose an item from it. The URI
+            // permissions for the selected file are only temporary.
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            Log.v(LOG_TAG, "Using ACTION_GET_CONTENT");
+        }
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, Data.CHOOSE_IMAGE_REQUEST_CODE);
     }
 
     // Called when the activity, which was started by startActivityForResult, returns its result
@@ -162,5 +128,38 @@ public class MainActivity extends AppCompatActivity {
         else {
             grantUriPermission(getPackageName(), uri, rwFlags);
         }
+    }
+
+    /* PagerAdapter for supplying the ViewPager with the tab pages (Fragments) to display. */
+    public class ScaleTypePagerAdapter extends FragmentPagerAdapter {
+
+        public ScaleTypePagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        // Return the Fragment at the given position to the ViewPager
+        @Override
+        public Fragment getItem(int position) {
+            // The Fragment we return is a PageFragment that is provided with its position
+            // in the collection of pages, so that it knows which scale type it represents.
+            Fragment fragment = new PageFragment();
+            Bundle arg = new Bundle();
+            arg.putInt(Data.ARG_POSITION, position);
+            fragment.setArguments(arg);
+            return fragment;
+        }
+
+        // Return the total number of pages
+        @Override
+        public int getCount() {
+            return Data.SCALE_TYPES.length;
+        }
+
+        // Return the title of the page at the provided position
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return Data.SCALE_TYPES[position].name();
+        }
+
     }
 }

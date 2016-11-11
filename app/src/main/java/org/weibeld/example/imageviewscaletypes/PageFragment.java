@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -18,9 +19,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -40,16 +39,11 @@ public class PageFragment extends Fragment {
     private final String LOG_TAG = PageFragment.class.getSimpleName();
 
     // Binding to layout elements through Data Binding Library
-    FragmentPageBinding mBind;
+    private FragmentPageBinding mBind;
 
     private View mRootView;
-    private TextView mImageInfoTextView;
     private ImageView.ScaleType mScaleType;
 
-    private SharedPreferences mSharedPrefs;
-
-    // Temporary button for querying sizes of ImageView and image
-    private Button mTmpButton;
 
     // on Attach --> onCreate
     @Override
@@ -70,54 +64,16 @@ public class PageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView of " + mScaleType.name());
-        
         mRootView = inflater.inflate(R.layout.fragment_page, container, false);
         mBind = FragmentPageBinding.bind(mRootView);
-
-        mSharedPrefs = Util.getSharedPrefs(getActivity());
-
+        mBind.imageView.setScaleType(mScaleType);
         // Temporary button for querying sizes of ImageView and image
 //        mBind.button.setOnClickListener(new View.OnClickListener() {
 //            public void onClick(View v) {
 //                setImageInfoText();
 //            }
 //        });
-
-        mBind.imageView.setScaleType(mScaleType);
-
         return mRootView;
-    }
-
-    // Read ImageView properties from SharedPreferences and apply them to the ImageView
-    private void setupImageView() {
-        String layoutWidthStr = mSharedPrefs.getString(getString(R.string.pref_layout_width_key), getString(R.string.pref_layout_width_default));
-        switch (layoutWidthStr) {
-            case "wrap_content":
-                mBind.imageView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-                break;
-            case "match_parent":
-                mBind.imageView.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
-                break;
-            default:
-                Util.Dimension dim = Util.parseDimension(layoutWidthStr);
-                int pixels = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
-                mBind.imageView.getLayoutParams().width = pixels;
-        }
-        String layoutHeightStr = mSharedPrefs.getString(getString(R.string.pref_layout_height_key), getString(R.string.pref_layout_height_default));
-        switch (layoutHeightStr) {
-            case "wrap_content":
-                mBind.imageView.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                break;
-            case "match_parent":
-                mBind.imageView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
-                break;
-            default:
-                Util.Dimension dim = Util.parseDimension(layoutHeightStr);
-                int pixels = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
-                mBind.imageView.getLayoutParams().height = pixels;
-        }
-
-        mRootView.requestLayout();
     }
 
     // onCreateView --> onActivityCreated --> onViewStateRestored
@@ -132,7 +88,6 @@ public class PageFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.v(LOG_TAG, "onStart of " + mScaleType.name());
-        setupImageView();
     }
 
     // onStart --> onResume --> onPause
@@ -140,8 +95,85 @@ public class PageFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "onResume of " + mScaleType.name());
+        // TODO: improve loading of large images
+        loadImage();
+        // TODO: recreate the two or three stopped Fragments after return from EditImageViewActivity
+        setupImageView();
+    }
 
+    // onResume --> onPause --> onStop
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.v(LOG_TAG, "onPause of " + mScaleType.name());
 
+    }
+
+    // onPause --> onStop --> onDestroyView
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.v(LOG_TAG, "onStop of " + mScaleType.name());
+    }
+
+    // onDestroyView --> onDestroy --> onDetach
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "onDestroy of " + mScaleType.name());
+    }
+
+    // Set ImageView properties according to values in SharedPreferences. Note: when returning from
+    // EditImageViewProperties, the callbacks called of this Fragment are onStart and onResume.
+    private void setupImageView() {
+        String[] stringVals;
+        int[] intVals;
+        String stringVal;
+        int intVal;
+
+        // Set layout_width, layout_height, maxWidth, and maxHeight
+        // Note: maxWidth and maxHeight do only have an effect if adjustViewBounds is false
+        stringVals = new String[] {
+                Pref.get(getActivity(), R.string.pref_layout_width_key),
+                Pref.get(getActivity(), R.string.pref_layout_height_key),
+                Pref.get(getActivity(), R.string.pref_maxWidth_key),
+                Pref.get(getActivity(), R.string.pref_maxHeight_key)
+        };
+        intVals = translateDimensions(stringVals);
+        mBind.imageView.getLayoutParams().width = intVals[0];
+        mBind.imageView.getLayoutParams().height = intVals[1];
+        mBind.imageView.setMaxWidth(intVals[2]);
+        mBind.imageView.setMaxHeight(intVals[3]);
+
+        // Set adjustViewBounds
+        stringVal = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
+        mBind.imageView.setAdjustViewBounds(stringVal.equals(Data.TRUE));
+
+        // Set background colour
+        stringVal = Pref.get(getActivity(), R.string.pref_background_key);
+        intVal = Color.parseColor(stringVal);
+        mBind.imageView.setBackgroundColor(intVal);
+    }
+
+    private int[] translateDimensions(String[] inVals) {
+        int[] outVals = new int[inVals.length];
+        for (int i = 0; i < inVals.length; i++) {
+            switch (inVals[i]) {
+                case Data.WRAP_CONTENT:
+                    outVals[i] = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    break;
+                case Data.MATCH_PARENT:
+                    outVals[i] = ViewGroup.LayoutParams.MATCH_PARENT;
+                    break;
+                default:
+                    Util.Dimension dim = Util.parseDimension(inVals[i]);
+                    outVals[i] = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
+            }
+        }
+        return outVals;
+    }
+
+    private void loadImage() {
         // Read the URI of the image to display from the SharedPreferences of the MainActivity,
         // and load this image into the ImageView. This is done in onResume so that the image is
         // updated automatically when the user returns from the "choose image" activity. Since
@@ -215,29 +247,6 @@ public class PageFragment extends Fragment {
                 //.resize(1850, 2780)
                 .into(mBind.imageView);
     }
-
-    // onResume --> onPause --> onStop
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.v(LOG_TAG, "onPause of " + mScaleType.name());
-
-    }
-
-    // onPause --> onStop --> onDestroyView
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.v(LOG_TAG, "onStop of " + mScaleType.name());
-    }
-
-    // onDestroyView --> onDestroy --> onDetach
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.v(LOG_TAG, "onDestroy of " + mScaleType.name());
-    }
-
 
     private void setImageInfoText() {
 

@@ -1,7 +1,5 @@
 package org.weibeld.example.imageviewscaletypes;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.TypedValue;
 
 /**
@@ -11,10 +9,6 @@ import android.util.TypedValue;
 public class Util {
 
     private Util() {}
-
-    public static SharedPreferences getSharedPrefs(Context c) {
-        return c.getSharedPreferences(c.getString(R.string.main_shared_prefs), Context.MODE_PRIVATE);
-    }
 
 
     // Parse a string of the form <value><unit> and extract its value and unit parts, respectively.

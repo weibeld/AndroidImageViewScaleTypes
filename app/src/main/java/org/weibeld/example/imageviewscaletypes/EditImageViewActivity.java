@@ -2,8 +2,8 @@ package org.weibeld.example.imageviewscaletypes;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
@@ -23,31 +23,16 @@ import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageView
  * Created by dw on 07/11/16.
  */
 
+// TODO: implement case when maxWidth and maxHeight are unset
 public class EditImageViewActivity extends AppCompatActivity {
 
     private final String LOG_TAG = EditImageViewActivity.class.getSimpleName();
 
-
-    private final String TRUE = "true";
-    private final String FALSE = "false";
-
-    private final String[] VALUES_DIMEN_WITH_KEYWORDS = new String[] {
-            "wrap_content", "match_parent"
-    };
-
-    private final String[] VALUES_BOOL = new String[] {
-            TRUE, FALSE
-    };
-
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
-    // Reference to the SharedPreferences of this Activity
-    SharedPreferences mPrefs;
-
     // Arrays for mapping text fields to SharedPreferences and  vice versa
-    private String[] mPrefKeys;
-    private String[] mPrefDefaults;
+    private int[] mPrefKeys;
     private EditText[] mTextFields;
 
     // Arrays for setting up the popup icons in the text fields
@@ -60,8 +45,6 @@ public class EditImageViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBind = DataBindingUtil.setContentView(this, R.layout.activity_edit_image_view);
-
-        mPrefs = Util.getSharedPrefs(this);
 
         // Set up Toolbar as app bar and define what to do when the X icon is clicked
         // Possible Android bug: setNavigationOnClickListener must come AFTER setSupportActionBar
@@ -76,6 +59,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         initArrays();
         createPopupWindows();
         addPopupIconListeners();
+        // TODO: add colour picker
         tweakAdjustViewBoundsField();  // Must be called before loadValues()
 
         loadValues();
@@ -83,21 +67,13 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     // Arrays serving as mapping between SharedPreference keys, default values, and UI text fields
     private void initArrays() {
-        mPrefKeys = new String[] {
-                getString(R.string.pref_layout_width_key),
-                getString(R.string.pref_layout_height_key),
-                getString(R.string.pref_background_key),
-                getString(R.string.pref_adjustViewBounds_key),
-                getString(R.string.pref_maxWidth_key),
-                getString(R.string.pref_maxHeight_key)
-        };
-        mPrefDefaults = new String[] {
-                getString(R.string.pref_layout_width_default),
-                getString(R.string.pref_layout_height_default),
-                getString(R.color.colorAccent).toUpperCase(),
-                getString(R.string.pref_adjustViewBounds_default),
-                getString(R.string.pref_maxWidth_default),
-                getString(R.string.pref_maxHeight_default)
+        mPrefKeys = new int[] {
+                R.string.pref_layout_width_key,
+                R.string.pref_layout_height_key,
+                R.string.pref_background_key,
+                R.string.pref_adjustViewBounds_key,
+                R.string.pref_maxWidth_key,
+                R.string.pref_maxHeight_key
         };
         mTextFields = new EditText[] {
                 mBind.layoutWidthEdit,
@@ -113,9 +89,9 @@ public class EditImageViewActivity extends AppCompatActivity {
                 mBind.adjustViewBoundsEdit
         };
         mPopupContents = new String[][] {
-                VALUES_DIMEN_WITH_KEYWORDS,
-                VALUES_DIMEN_WITH_KEYWORDS,
-                VALUES_BOOL
+                Data.ARR_DIMEN_KEYWORDS,
+                Data.ARR_DIMEN_KEYWORDS,
+                Data.ARR_BOOL
         };
     }
 
@@ -173,7 +149,7 @@ public class EditImageViewActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                if (mBind.adjustViewBoundsEdit.getText().toString().equals(TRUE)) {
+                if (mBind.adjustViewBoundsEdit.getText().toString().equals(Data.TRUE)) {
                     mBind.maxWidthLabel.setEnabled(true);
                     mBind.maxWidthEdit.setEnabled(true);
                     mBind.maxHeightEdit.setEnabled(true);
@@ -187,12 +163,13 @@ public class EditImageViewActivity extends AppCompatActivity {
                 }
             }
         });
+        mBind.adjustViewBoundsLabel.setPaintFlags(mBind.adjustViewBoundsLabel.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
     }
 
 
     // Get the SharedPreference entry at a specific index in the arrays initialised by initArrays
     private String getPref(int index) {
-        return mPrefs.getString(mPrefKeys[index], mPrefDefaults[index]);
+        return Pref.get(this, mPrefKeys[index]);
     }
 
     // Load values from SharedPreferences into the corresponding text fields
@@ -205,14 +182,14 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Load default values of SharedPreferences into the corresponding text fields
     private void loadDefaultValues() {
         for (int i = 0; i < mTextFields.length; i++) {
-            mTextFields[i].setText(mPrefDefaults[i]);
+            mTextFields[i].setText(Pref.getDefault(this, mPrefKeys[i]));
         }
     }
 
     // Save values from text fields to the corresponding SharedPreference entries
     private void saveValues() {
         for (int i = 0; i < mTextFields.length; i++) {
-            mPrefs.edit().putString(mPrefKeys[i], mTextFields[i].getText().toString()).apply();
+            Pref.put(this, mPrefKeys[i], mTextFields[i].getText().toString());
         }
     }
 
