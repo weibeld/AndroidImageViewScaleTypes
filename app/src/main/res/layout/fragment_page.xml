@@ -29,7 +29,6 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_gravity="center"
-                    android:background="@color/colorAccent"
                     android:elevation="10dp"
                     />
             <!--</android.support.v7.widget.CardView>-->

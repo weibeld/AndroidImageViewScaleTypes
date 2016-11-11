@@ -38,6 +38,8 @@ public class PageFragment extends Fragment {
 
     private final String LOG_TAG = PageFragment.class.getSimpleName();
 
+    private final int NA = Integer.MIN_VALUE;
+
     // Binding to layout elements through Data Binding Library
     private FragmentPageBinding mBind;
 
@@ -131,7 +133,7 @@ public class PageFragment extends Fragment {
         String stringVal;
         int intVal;
 
-        // Set layout_width, layout_height, maxWidth, and maxHeight
+        // Set dimension attributes (layout_width, layout_height, maxWidth, maxHeight)
         // Note: maxWidth and maxHeight do only have an effect if adjustViewBounds is false
         stringVals = new String[] {
                 Pref.get(getActivity(), R.string.pref_layout_width_key),
@@ -142,35 +144,42 @@ public class PageFragment extends Fragment {
         intVals = translateDimensions(stringVals);
         mBind.imageView.getLayoutParams().width = intVals[0];
         mBind.imageView.getLayoutParams().height = intVals[1];
-        mBind.imageView.setMaxWidth(intVals[2]);
-        mBind.imageView.setMaxHeight(intVals[3]);
+        if (intVals[2] != NA)
+            mBind.imageView.setMaxWidth(intVals[2]);
+        if (intVals[3] != NA)
+            mBind.imageView.setMaxHeight(intVals[3]);
 
         // Set adjustViewBounds
         stringVal = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
         mBind.imageView.setAdjustViewBounds(stringVal.equals(Data.TRUE));
 
-        // Set background colour
+        // Set background colour (note: setting no background disables the elevation)
         stringVal = Pref.get(getActivity(), R.string.pref_background_key);
-        intVal = Color.parseColor(stringVal);
-        mBind.imageView.setBackgroundColor(intVal);
+        if (!stringVal.equals("")) {
+            intVal = Color.parseColor(stringVal);
+            mBind.imageView.setBackgroundColor(intVal);
+        }
     }
 
-    private int[] translateDimensions(String[] inVals) {
-        int[] outVals = new int[inVals.length];
-        for (int i = 0; i < inVals.length; i++) {
-            switch (inVals[i]) {
+    private int[] translateDimensions(String[] stringVals) {
+        int[] intVals = new int[stringVals.length];
+        for (int i = 0; i < stringVals.length; i++) {
+            switch (stringVals[i]) {
                 case Data.WRAP_CONTENT:
-                    outVals[i] = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    intVals[i] = ViewGroup.LayoutParams.WRAP_CONTENT;
                     break;
                 case Data.MATCH_PARENT:
-                    outVals[i] = ViewGroup.LayoutParams.MATCH_PARENT;
+                    intVals[i] = ViewGroup.LayoutParams.MATCH_PARENT;
+                    break;
+                case "":
+                    intVals[i] = NA;
                     break;
                 default:
-                    Util.Dimension dim = Util.parseDimension(inVals[i]);
-                    outVals[i] = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
+                    Util.Dimension dim = Util.parseDimension(stringVals[i]);
+                    intVals[i] = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
             }
         }
-        return outVals;
+        return intVals;
     }
 
     private void loadImage() {

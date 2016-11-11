@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Wrapper around the only SharedPreferences file of the application.
+ * Wrapper around the single SharedPreferences file of the application.
  */
 class Pref {
 
@@ -16,7 +16,7 @@ class Pref {
 
     private Pref() {}
 
-    // Get a SharedPreferences value by supplying the resource ID of the key of the preference
+    // Get a SharedPreferences value by supplying the resource ID of the key
     static String get(Context c, int resIdKey) {
         check(c, resIdKey);
         return prefs.getString(c.getString(resIdKey), c.getString(map.get(resIdKey)));
@@ -41,8 +41,8 @@ class Pref {
             throw new IllegalArgumentException("Unknown SharedPreferences key: " + c.getString(resIdKey));
     }
 
-    // Initialise the mapping between keys and default values. If new SharedPreferences entries are
-    // added, they must mandatorily be added to the mapping in this method.
+    // Get reference to SharedPreferences, and initialise mapping between keys and default values.
+    // If a new SharedPreferences entry is added, it must be added to the mapping in this method.
     private static void init(Context c) {
         prefs = c.getSharedPreferences(c.getString(R.string.main_shared_prefs), Context.MODE_PRIVATE);
         map = new HashMap<>();

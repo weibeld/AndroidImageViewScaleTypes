@@ -9,12 +9,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageViewBinding;
@@ -23,7 +23,6 @@ import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageView
  * Created by dw on 07/11/16.
  */
 
-// TODO: implement case when maxWidth and maxHeight are unset
 public class EditImageViewActivity extends AppCompatActivity {
 
     private final String LOG_TAG = EditImageViewActivity.class.getSimpleName();
@@ -31,13 +30,11 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
-    // Arrays for mapping text fields to SharedPreferences and  vice versa
-    private int[] mPrefKeys;
+    // Mapping from text fields to SharedPreferences and  vice versa
     private EditText[] mTextFields;
+    private int[] mPrefKeys;
 
-    // Arrays for setting up the popup icons in the text fields
-    private EditText[] mPopupTextFields;
-    private String[][] mPopupContents;
+    // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
 
 
@@ -56,25 +53,18 @@ public class EditImageViewActivity extends AppCompatActivity {
             }
         });
 
-        initArrays();
-        createPopupWindows();
-        addPopupIconListeners();
+        initMapping();
+        setupPopupFields();
+        setupEmptiableFields();
+        setupAdjustViewBoundsField();
         // TODO: add colour picker
-        tweakAdjustViewBoundsField();  // Must be called before loadValues()
 
+        // Load text into fields, call after above setup methods so that listeners are triggered
         loadValues();
     }
 
-    // Arrays serving as mapping between SharedPreference keys, default values, and UI text fields
-    private void initArrays() {
-        mPrefKeys = new int[] {
-                R.string.pref_layout_width_key,
-                R.string.pref_layout_height_key,
-                R.string.pref_background_key,
-                R.string.pref_adjustViewBounds_key,
-                R.string.pref_maxWidth_key,
-                R.string.pref_maxHeight_key
-        };
+    // Create mapping between text fields and SharedPreferences entries
+    private void initMapping() {
         mTextFields = new EditText[] {
                 mBind.layoutWidthEdit,
                 mBind.layoutHeightEdit,
@@ -83,53 +73,60 @@ public class EditImageViewActivity extends AppCompatActivity {
                 mBind.maxWidthEdit,
                 mBind.maxHeightEdit
         };
-        mPopupTextFields = new EditText[] {
+        mPrefKeys = new int[] {
+                R.string.pref_layout_width_key,
+                R.string.pref_layout_height_key,
+                R.string.pref_background_key,
+                R.string.pref_adjustViewBounds_key,
+                R.string.pref_maxWidth_key,
+                R.string.pref_maxHeight_key
+        };
+    }
+
+    // Add ListPopupWindows to the text fields with a dropdown icon
+    private void setupPopupFields() {
+        // Text fields with a dropdown icon
+        final EditText[] popupFields = new EditText[] {
                 mBind.layoutWidthEdit,
                 mBind.layoutHeightEdit,
                 mBind.adjustViewBoundsEdit
         };
-        mPopupContents = new String[][] {
+        // Data for each of the ListPopupWindows
+        final String[][] popupData = new String[][] {
                 Data.ARR_DIMEN_KEYWORDS,
                 Data.ARR_DIMEN_KEYWORDS,
                 Data.ARR_BOOL
         };
-    }
-
-    private void createPopupWindows() {
-        mPopupWindows = new ListPopupWindow[mPopupTextFields.length];
-        for (int i = 0; i < mPopupTextFields.length; i++) {
-            final int I = i;
+        // Create and setup ListPopupWindows
+        mPopupWindows = new ListPopupWindow[popupFields.length];
+        for (int i = 0; i < popupFields.length; i++) {
             mPopupWindows[i] = new ListPopupWindow(this);
-            mPopupWindows[i].setAnchorView(mPopupTextFields[i]);
+            mPopupWindows[i].setAnchorView(popupFields[i]);
             mPopupWindows[i].setModal(true);
             mPopupWindows[i].setVerticalOffset(-10);
             mPopupWindows[i].setAdapter(new ArrayAdapter<>(
                     this,
                     android.R.layout.simple_spinner_dropdown_item,
-                    mPopupContents[i]
+                    popupData[i]
             ));
+            final int I = i;
+            // What to do when an item in the ListPopupWindow is clicked
             mPopupWindows[i].setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Log.v(LOG_TAG, "parent: " + parent + "\nview: " + view + "\nindex: " + I);
-                    mPopupTextFields[I].setText(mPopupContents[I][position]);
+                    popupFields[I].setText(popupData[I][position]);
                     mPopupWindows[I].dismiss();
                 }
             });
-        }
-    }
-
-    private void addPopupIconListeners() {
-        for (int i = 0; i < mPopupTextFields.length; i++) {
-            final int I = i;
-            mPopupTextFields[i].setOnTouchListener(new View.OnTouchListener() {
+            // What to do when the dropdown icon is clicked (--> show ListPopupWindow)
+            popupFields[i].setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        int textFieldWidth = mPopupTextFields[I].getWidth();
-                        int iconWidth = mPopupTextFields[I].getCompoundDrawables()[2].getBounds().width();
+                        int textFieldWidth = popupFields[I].getWidth();
+                        int iconWidth = popupFields[I].getCompoundDrawables()[2].getBounds().width();
                         if (event.getX() >= textFieldWidth - iconWidth) {
-                            mPopupTextFields[I].requestFocus();
+                            popupFields[I].requestFocus();
                             mPopupWindows[I].show();
                         }
                     }
@@ -139,9 +136,47 @@ public class EditImageViewActivity extends AppCompatActivity {
         }
     }
 
-    private void tweakAdjustViewBoundsField() {
-        mBind.adjustViewBoundsEdit.setKeyListener(null);  // Make field non-editable
-        mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);
+    // Add "strikethrough" functionality to the text fields that can be left empty
+    private void setupEmptiableFields() {
+        final EditText[] fields = new EditText[] {
+                mBind.backgroundEdit,  // Note: setting no background disables elevation
+                mBind.maxWidthEdit,
+                mBind.maxHeightEdit
+        };
+        final TextView[] labels = new TextView[] {
+                mBind.backgroundLabel,
+                mBind.maxWidthLabel,
+                mBind.maxHeightLabel
+        };
+        // If a field is left empty, strike through the corresponding label
+        for (int i = 0; i < fields.length; i++) {
+            final int I = i;
+            // Called on every text change (i.e. every character typed)
+            fields[i].addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    int mode = labels[I].getPaintFlags();
+                    int flag = Paint.STRIKE_THRU_TEXT_FLAG;
+                    // If text field is empty, add strikethrough flag
+                    if (fields[I].getText().toString().equals(""))
+                        labels[I].setPaintFlags(Util.setFlag(mode, flag));
+                    // If text field is non-empty, make sure strikethrough flag is removed
+                    else
+                        labels[I].setPaintFlags(Util.unsetFlag(mode, flag));
+                }
+            });
+        }
+    }
+
+    // If "false" is selected, disable the maxWidth and maxHeight fields
+    private void setupAdjustViewBoundsField() {
+        // The following two settings don't work when defined in XML (possible Android bug?)
+        mBind.adjustViewBoundsEdit.setKeyListener(null);        // Make field non-editable
+        mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);  // Disable selectAllOnFocus
         mBind.adjustViewBoundsEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -163,11 +198,10 @@ public class EditImageViewActivity extends AppCompatActivity {
                 }
             }
         });
-        mBind.adjustViewBoundsLabel.setPaintFlags(mBind.adjustViewBoundsLabel.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
     }
 
 
-    // Get the SharedPreference entry at a specific index in the arrays initialised by initArrays
+    // Get the SharedPreference entry at a specific index in the arrays initialised by initMapping
     private String getPref(int index) {
         return Pref.get(this, mPrefKeys[index]);
     }
@@ -186,6 +220,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         }
     }
 
+    // TODO: validate values on save
     // Save values from text fields to the corresponding SharedPreference entries
     private void saveValues() {
         for (int i = 0; i < mTextFields.length; i++) {
