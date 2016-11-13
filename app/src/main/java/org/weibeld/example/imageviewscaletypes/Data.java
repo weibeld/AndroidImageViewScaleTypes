@@ -6,25 +6,34 @@ import android.widget.ImageView;
  * Created by dw on 24/10/16.
  */
 
-public class Data {
+class Data {
 
     private Data() {}
 
-    public static final String TRUE = "true";
-    public static final String FALSE = "false";
-    public static final String WRAP_CONTENT = "wrap_content";
-    public static final String MATCH_PARENT = "match_parent";
+    static final String TRUE = "true";
+    static final String FALSE = "false";
+    static final String WRAP_CONTENT = "wrap_content";
+    static final String MATCH_PARENT = "match_parent";
+    static final String UNIT_DP = "dp";
+    static final String UNIT_SP = "sp";
+    static final String UNIT_PX = "px";
+    static final String UNIT_IN = "in";
+    static final String UNIT_MM = "mm";
 
-    public static final String[] ARR_BOOL = new String[] {
+    static final String[] ARR_BOOL = new String[] {
             TRUE, FALSE
     };
 
-    public static final String[] ARR_DIMEN_KEYWORDS = new String[] {
+    static final String[] ARR_DIMEN_KEYWORDS = new String[] {
             WRAP_CONTENT, MATCH_PARENT
     };
 
+    static final String[] ARR_DIMEN_UNITS = new String[] {
+            UNIT_DP, UNIT_SP, UNIT_PX, UNIT_IN, UNIT_MM
+    };
+
     // All the ImageView scale types in the order in which we want to display them
-    public static final ImageView.ScaleType[] SCALE_TYPES = new ImageView.ScaleType[] {
+    static final ImageView.ScaleType[] SCALE_TYPES = new ImageView.ScaleType[] {
             ImageView.ScaleType.CENTER,
             ImageView.ScaleType.CENTER_CROP,
             ImageView.ScaleType.CENTER_INSIDE,
@@ -36,8 +45,8 @@ public class Data {
     };
 
     // Page position argument passed to the PageFragment
-    public static final String ARG_POSITION = "position";
+    static final String ARG_POSITION = "position";
 
     // Code for the choose image intent
-    public static final int CHOOSE_IMAGE_REQUEST_CODE = 1;
+    static final int CHOOSE_IMAGE_REQUEST_CODE = 1;
 }

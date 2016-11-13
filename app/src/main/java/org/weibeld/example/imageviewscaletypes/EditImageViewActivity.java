@@ -19,6 +19,10 @@ import android.widget.Toast;
 
 import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageViewBinding;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Predicate;
+
 /**
  * Created by dw on 07/11/16.
  */
@@ -36,6 +40,8 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
+
+    private Map<EditText, Predicate<String>> mValidators;
 
 
     @Override
@@ -81,6 +87,18 @@ public class EditImageViewActivity extends AppCompatActivity {
                 R.string.pref_maxWidth_key,
                 R.string.pref_maxHeight_key
         };
+
+        mValidators = new HashMap<EditText, Predicate<String>>();
+        // Note about method references:
+        // Equivalent lambda expr: s -> Validator.isValidLayoutWidthHeightEntry(s)). However, since
+        // this lambda expr. calls only isValid... method, and this method has the same signature
+        // as test() of Predicate<String>, the lambda expr. can be replaced by a method reference.
+        mValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutWidthHeightEntry);
+        mValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutWidthHeightEntry);
+        mValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
+        mValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
+        mValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
+
     }
 
     // Add ListPopupWindows to the text fields with a dropdown icon
@@ -225,6 +243,20 @@ public class EditImageViewActivity extends AppCompatActivity {
     private void saveValues() {
         for (int i = 0; i < mTextFields.length; i++) {
             Pref.put(this, mPrefKeys[i], mTextFields[i].getText().toString());
+        }
+    }
+
+    private void validateValues() {
+        for (Map.Entry<EditText, Predicate<String>> e : mValidators.entrySet()) {
+            String text = e.getKey().getText().toString();
+            if (!e.getValue().test(text)) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Invalid entry: " + text).
+                        setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {}
+                        }).create().show();
+            }
         }
     }
 

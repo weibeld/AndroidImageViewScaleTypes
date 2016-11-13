@@ -1,8 +1,15 @@
+// As a workaround for the Jack vs. Data Binding Library in Android Studio < 2.3, use Retrolambda,
+// which enables lambda expressions with Java 6 and 7 (https://github.com/evant/gradle-retrolambda)
+plugins {
+    id "me.tatarka.retrolambda" version "3.3.1"
+}
+
 apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.3"
+
     defaultConfig {
         applicationId "org.weibeld.example.imageviewscaletypes"
         minSdkVersion 16
@@ -10,7 +17,16 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        // Enable Jack compiler which supports Java 8 features (default is Java 7 features only).
+        // Problem: in Android Studio < 2.3, the Data Binding Library cannot be used together with
+        // the Jack compiler. However, this issue should be resolved in Android Studio 2.3 (see
+        // https://code.google.com/p/android/issues/detail?id=210615)
+        jackOptions {
+            enabled false
+        }
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -18,8 +34,15 @@ android {
         }
     }
 
+    // Enable the Data Binding Library
     dataBinding {
         enabled true
+    }
+
+    // Enable usage of Java 8 features (necessary for Retrolambda and using Java 8 feat. with Jack)
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -35,6 +58,7 @@ dependencies {
 
     // https://github.com/umano/AndroidSlidingUpPanel
     compile 'com.sothree.slidinguppanel:library:3.3.1'
+
     compile 'com.squareup.picasso:picasso:2.5.2'
     testCompile 'junit:junit:4.12'
 
