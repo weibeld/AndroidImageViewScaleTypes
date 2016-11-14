@@ -32,6 +32,12 @@ public class Validator {
         return str.equals(Data.TRUE) || str.equals(Data.FALSE);
     }
 
+    public static boolean isValidColorEntry(String str) {
+        // We use the colour format defined by Color.parseColor
+        String regex = "^(#([a-fA-F0-9]{6}|[a-fA-F0-9]{8}))|red|blue|green|black|white|gray|cyan|magenta|yellow|lightgray|darkgray|grey|lightgrey|darkgrey|aqua|fuchsia|lime|maroon|navy|olive|purple|silver|teal$";
+        return str.matches(regex);
+    }
+
     // Test if a string has a valid "<value><unit>" format, such as "14.5dp"
     private static boolean isValidDimenString(String str) {
         String regex = "^\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(";

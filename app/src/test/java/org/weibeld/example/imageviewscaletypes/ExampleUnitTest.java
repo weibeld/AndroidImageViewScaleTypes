@@ -118,6 +118,30 @@ public class ExampleUnitTest {
         }
     }
 
+    @Test
+    public void isValidColorEntry_test() throws Exception {
+        String msg;
+
+        // First, test if valid colour entries are positively validated
+        String[] validEntries = new String[] {
+                "#FFFFFF", "#FFFFFFFF", "#000000", "#00000000", "#aaaaaa", "#aaaaaaaa",
+                "#fA0fA0", "#fA0efA0e", "green", "cyan"
+        };
+        for (int i = 0; i < validEntries.length; i++) {
+            msg = "\"" + validEntries[i] + "\"" + " should be valid.";
+            assertTrue(msg, Validator.isValidColorEntry(validEntries[i]));
+        }
+
+        // Next, test if invalid colour entries are negatively validated
+        String[] invalidEntries = new String[] {
+                "#fff", "#ffff", "#fffff", "#fffffff", "#fffffffff", "Green", "Cyan"
+        };
+        for (int i = 0; i < invalidEntries.length; i++) {
+            msg = "\"" + invalidEntries[i] + "\"" + " should be invalid.";
+            assertFalse(msg, Validator.isValidColorEntry(invalidEntries[i]));
+        }
+    }
+
     // Make sure that the "value" strings that we want to accept in our dimension entries are also
     // accepted by Float.parseFloat. This is because we use Float.parseFloat to convert these
     // "value" strings to floats when the ImageView is drawn in PageFragment.

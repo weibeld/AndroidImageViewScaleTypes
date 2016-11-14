@@ -2,8 +2,10 @@ package org.weibeld.example.imageviewscaletypes;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.databinding.DataBindingUtil;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
@@ -23,6 +25,8 @@ import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageView
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.R.id.input;
+
 /**
  * Created by dw on 07/11/16.
  */
@@ -34,8 +38,6 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
-    View mRootView;
-
     // Mapping from text fields to SharedPreferences and  vice versa
     private EditText[] mTextFields;
     private int[] mPrefKeys;
@@ -43,7 +45,11 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
 
-    private Map<EditText, StringPredicate> mValidators;
+    private Map<EditText, StringPredicate> mMapValidators;
+    private Map<EditText, Integer> mMapPrefKeys;
+
+    // The default text colours of an EditText in different states (e.g. enabled, disabled)
+    private ColorStateList mDefaultColorsEditText;
 
     // Functional interface to be used for lambda expressions. This is only necessary, because
     // currently the Java standard functional interfaces in java.util.function cannot be used for
@@ -58,17 +64,15 @@ public class EditImageViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBind = DataBindingUtil.setContentView(this, R.layout.activity_edit_image_view);
-        mRootView = mBind.getRoot();
 
         // Set up Toolbar as app bar and define what to do when the X icon is clicked
         // Possible Android bug: setNavigationOnClickListener must come AFTER setSupportActionBar
         setSupportActionBar(mBind.toolbar);
-        mBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmExit();
-            }
-        });
+        mBind.toolbar.setNavigationOnClickListener(v -> confirmExit());
+
+        // Back up the default colours of EditText
+        mDefaultColorsEditText = mBind.layoutWidthEdit.getTextColors();
+        logTextColors();
 
         initMapping();
         setupValidations();
@@ -100,22 +104,27 @@ public class EditImageViewActivity extends AppCompatActivity {
                 R.string.pref_maxHeight_key
         };
 
-        mValidators = new HashMap<>();
-        // Note about method references:
-        // Equivalent lambda expr: s -> Validator.isValidLayoutWidthHeightEntry(s)). However, since
-        // this lambda expr. calls only isValid... method, and this method has the same signature
-        // as test() of StringPredicate, the lambda expr. can be replaced by a method reference.
-        mValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutWidthHeightEntry);
-        mValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutWidthHeightEntry);
-        mValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
-        mValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
-        mValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
+        mMapPrefKeys = new HashMap<>();
+        mMapPrefKeys.put(mBind.layoutWidthEdit, R.string.pref_layout_width_key);
+        mMapPrefKeys.put(mBind.layoutHeightEdit, R.string.pref_layout_height_key);
+        mMapPrefKeys.put(mBind.backgroundEdit, R.string.pref_background_key);
+        mMapPrefKeys.put(mBind.adjustViewBoundsEdit, R.string.pref_adjustViewBounds_key);
+        mMapPrefKeys.put(mBind.maxWidthEdit, R.string.pref_maxWidth_key);
+        mMapPrefKeys.put(mBind.maxHeightEdit, R.string.pref_maxHeight_key);
+
+        mMapValidators = new HashMap<>();
+        mMapValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutWidthHeightEntry);
+        mMapValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutWidthHeightEntry);
+        mMapValidators.put(mBind.backgroundEdit, Validator::isValidColorEntry);
+        mMapValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
+        mMapValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
+        mMapValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
     }
 
     // Add OnFocusChangeListeners to text fields so that whenever a field loses focus, the content
     // of the field is validated, and the focus remains on this field.
     private void setupValidations() {
-        for (Map.Entry<EditText, StringPredicate> e : mValidators.entrySet()) {
+        for (Map.Entry<EditText, StringPredicate> e : mMapValidators.entrySet()) {
             EditText textField = e.getKey();
             textField.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -126,45 +135,35 @@ public class EditImageViewActivity extends AppCompatActivity {
                 }
                 @Override
                 public void afterTextChanged(Editable s) {
-                    String text = textField.getText().toString();
-                    if (mValidators.get(textField).test(text)) {
-                        //textField.setTextColor(Color.BLACK);
-                    } else {
-                        //textField.setTextColor(Color.RED);
-                        textField.setError("Invalid input");
-                    }
+                    String input = textField.getText().toString();
+                    if (mMapValidators.get(textField).test(input))
+                        textField.setTextColor(mDefaultColorsEditText);
+                    else
+                        textField.setTextColor(getColor(R.color.colorInvalidInput));
+                        //textField.setError("Invalid input");
                 }
             });
             textField.setOnFocusChangeListener((v, hasFocus) -> {
-                String text = textField.getText().toString();
-                if (!hasFocus) {
-                    if (!mValidators.get(textField).test(text)) {
-                        new AlertDialog.Builder(this).
-                                setTitle("Invalid Input").
-                                setMessage("\"" + text + "\" is not a valid value for ...\nValid inputs are: (<num>dp|sp|px|in|mm)|match_parent|wrap_content").
-                                setPositiveButton("OK", (dialog, which) -> {
-                                    textField.requestFocus();
-                                }).
-                                create().show();
-                    }
-                }
+                if (hasFocus) return;
+                if (!mMapValidators.get(textField).test(textField.getText().toString()))
+                    showInvalidInputDialog(textField);
             });
         }
     }
 
-    private boolean validateField(EditText field) {
-        StringPredicate validator = mValidators.get(field);
-        String text = field.getText().toString();
-        if (!validator.test(text)) {
-            Log.v(LOG_TAG, text + " is invalid");
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Invalid entry: " + text).
-                    setPositiveButton("OK", (dialog, which) -> {}).
-                    create().show();
-            return false;
-        }
-        else
-            return true;
+    private void showInvalidInputDialog(EditText textField) {
+        new AlertDialog.Builder(this).
+                setTitle("Invalid Input").
+                setMessage("\"" + input + "\" is not a valid value for ...\nValid inputs are: (<num>dp|sp|px|in|mm)|match_parent|wrap_content").
+                setPositiveButton("OK", (dialog, which) -> {
+                    textField.requestFocus();
+                    final Rect scrollBounds = new Rect();
+                    mBind.scrollView.getHitRect(scrollBounds);
+                    if (!textField.getLocalVisibleRect(scrollBounds)) {
+                        mBind.scrollView.post(() -> mBind.scrollView.smoothScrollTo(0, textField.getTop()));
+                    }
+                }).
+                create().show();
     }
 
     // Add ListPopupWindows to the text fields with a dropdown icon
@@ -271,16 +270,14 @@ public class EditImageViewActivity extends AppCompatActivity {
                 if (mBind.adjustViewBoundsEdit.getText().toString().equals(Data.TRUE)) {
                     mBind.maxWidthLabel.setEnabled(true);
                     mBind.maxWidthEdit.setEnabled(true);
-                    mBind.maxHeightEdit.setEnabled(true);
                     mBind.maxHeightLabel.setEnabled(true);
+                    mBind.maxHeightEdit.setEnabled(true);
                 }
                 else {
-//                    int color = mBind.maxWidthEdit.getHintTextColors().getDefaultColor();
-                    mBind.maxWidthEdit.setTextColor(getColor(R.color.disabled_color));
                     mBind.maxWidthLabel.setEnabled(false);
                     mBind.maxWidthEdit.setEnabled(false);
-                    mBind.maxHeightEdit.setEnabled(false);
                     mBind.maxHeightLabel.setEnabled(false);
+                    mBind.maxHeightEdit.setEnabled(false);
                 }
             }
         });
@@ -315,7 +312,7 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     private void validateValues() {
-        for (Map.Entry<EditText, StringPredicate> e : mValidators.entrySet()) {
+        for (Map.Entry<EditText, StringPredicate> e : mMapValidators.entrySet()) {
             String text = e.getKey().getText().toString();
             if (!e.getValue().test(text)) {
                 Log.v(LOG_TAG, text + " is invalid");
@@ -381,6 +378,38 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Called when the "Reset Defaults" button is clicked
     public void onResetClicked(View view) {
         loadDefaultValues();
+    }
+
+    // This method is for debugging only. Find out the default text colours for the "enabled" and
+    // "disabled" state of EditText and TextView.
+    private void logTextColors() {
+        // Get ColorStateLists (defines text colors for all possible states that the View can be in)
+        ColorStateList cslEditText = mBind.maxWidthEdit.getTextColors();
+        ColorStateList cslTextView = mBind.maxWidthLabel.getTextColors();
+
+        // The standard Android enabled and disabled states (used in the ColorStateLists)
+        int enabledState = android.R.attr.state_enabled;
+        int disabledState = -android.R.attr.state_enabled;
+
+        // Get the text colours for the enabled and disabled states
+        int defaultColor = 0xFFFFFFFF;
+        int editTextEnabled = cslEditText.getColorForState(new int[] {enabledState}, defaultColor);
+        int editTextDisabled = cslEditText.getColorForState(new int[] {disabledState}, defaultColor);
+        int textViewEnabled = cslTextView.getColorForState(new int[] {enabledState}, defaultColor);
+        int textViewDisabled = cslTextView.getColorForState(new int[] {disabledState}, defaultColor);
+
+        // Output
+        Log.v(LOG_TAG, "Text colour EditText enabled: " + Integer.toHexString(editTextEnabled));
+        Log.v(LOG_TAG, "Text colour EditText disabled: " + Integer.toHexString(editTextDisabled));
+        Log.v(LOG_TAG, "Text colour TextView enabled: " + Integer.toHexString(textViewEnabled));
+        Log.v(LOG_TAG, "Text colour TextView disabled: " + Integer.toHexString(textViewDisabled));
+
+        // Example results on API level 23 with dark text on light background theme
+        // (Compare with https://material.google.com/style/color.html#color-color-schemes):
+        // EditText enabled: 0xDE000000: black, opacity 222/255 (87.06%) -> primary text
+        // EditText disabled: 0x3A000000: black, opacity 58/255 (22.75%) -> 26.1% of primary text
+        // TextView enabled: 0x8A000000: black, opacity 138/255 (54.12%) -> secondary text
+        // TextView disabled: 0x24000000: black, opacity 36/255 (14.12%) -> 26.1% of primary text
     }
 
 }

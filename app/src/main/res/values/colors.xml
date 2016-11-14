@@ -13,8 +13,7 @@
     <color name="colorAccent">#F50057</color>            <!-- Pink A400 -->
     <color name="colorAccentLight">#FF80AB</color>       <!-- Pink A100 -->
 
-
-    <!-- Temporary: enabled and disabled EditText text colour -->
-    <color name="enabled_color">#000000</color>
-    <color name="disabled_color">#DDDDDD</color>
+    <!-- Colour for invalid text in EditText -->
+    <!-- Opacity 54%: https://material.google.com/style/color.html#color-text-background-colors -->
+    <color name="colorInvalidInput">#8AFF0000</color>
 </resources>
