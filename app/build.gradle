@@ -1,5 +1,5 @@
-// As a workaround for the Jack vs. Data Binding Library in Android Studio < 2.3, use Retrolambda,
-// which enables lambda expressions with Java 6 and 7 (https://github.com/evant/gradle-retrolambda)
+// As a workaround for the Jack vs. Data Binding problem, don't use Jack, but use Retrolambda,
+// which enables lambda expressions for Java 6 and 7 (https://github.com/evant/gradle-retrolambda)
 plugins {
     id "me.tatarka.retrolambda" version "3.3.1"
 }
@@ -20,7 +20,7 @@ android {
 
         // Enable Jack compiler which supports Java 8 features (default is Java 7 features only).
         // Problem: in Android Studio < 2.3, the Data Binding Library cannot be used together with
-        // the Jack compiler. However, this issue should be resolved in Android Studio 2.3 (see
+        // the Jack compiler. This issue should be solved in the coming Android Studio 2.3 (see
         // https://code.google.com/p/android/issues/detail?id=210615)
         jackOptions {
             enabled false
@@ -39,7 +39,7 @@ android {
         enabled true
     }
 
-    // Enable usage of Java 8 features (necessary for Retrolambda and using Java 8 feat. with Jack)
+    // Enable usage of Java 8 features (necessary for Retrolambda and using Java 8  with Jack)
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8

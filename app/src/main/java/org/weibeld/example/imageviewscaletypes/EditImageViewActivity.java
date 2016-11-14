@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,7 +22,6 @@ import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageView
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * Created by dw on 07/11/16.
@@ -34,6 +34,8 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
+    View mRootView;
+
     // Mapping from text fields to SharedPreferences and  vice versa
     private EditText[] mTextFields;
     private int[] mPrefKeys;
@@ -41,13 +43,22 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
 
-    private Map<EditText, Predicate<String>> mValidators;
+    private Map<EditText, StringPredicate> mValidators;
 
+    // Functional interface to be used for lambda expressions. This is only necessary, because
+    // currently the Java standard functional interfaces in java.util.function cannot be used for
+    // devices with API level < 24 (neither with Jack, nor with Retrolambda). If we would target
+    // API level >= 24, we could just use the predefined Predicate<String> interface.
+    // http://stackoverflow.com/questions/38607149/is-there-a-way-to-use-java-8-functional-interfaces-on-android-api-below-24
+    interface StringPredicate {
+        boolean test(String s);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBind = DataBindingUtil.setContentView(this, R.layout.activity_edit_image_view);
+        mRootView = mBind.getRoot();
 
         // Set up Toolbar as app bar and define what to do when the X icon is clicked
         // Possible Android bug: setNavigationOnClickListener must come AFTER setSupportActionBar
@@ -60,12 +71,13 @@ public class EditImageViewActivity extends AppCompatActivity {
         });
 
         initMapping();
+        setupValidations();
         setupPopupFields();
         setupEmptiableFields();
         setupAdjustViewBoundsField();
         // TODO: add colour picker
 
-        // Load text into fields, call after above setup methods so that listeners are triggered
+        // Load text into fields (call after above setup methods to trigger text change listeners)
         loadValues();
     }
 
@@ -88,17 +100,71 @@ public class EditImageViewActivity extends AppCompatActivity {
                 R.string.pref_maxHeight_key
         };
 
-        mValidators = new HashMap<EditText, Predicate<String>>();
+        mValidators = new HashMap<>();
         // Note about method references:
         // Equivalent lambda expr: s -> Validator.isValidLayoutWidthHeightEntry(s)). However, since
         // this lambda expr. calls only isValid... method, and this method has the same signature
-        // as test() of Predicate<String>, the lambda expr. can be replaced by a method reference.
+        // as test() of StringPredicate, the lambda expr. can be replaced by a method reference.
         mValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutWidthHeightEntry);
         mValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutWidthHeightEntry);
         mValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
         mValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
         mValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
+    }
 
+    // Add OnFocusChangeListeners to text fields so that whenever a field loses focus, the content
+    // of the field is validated, and the focus remains on this field.
+    private void setupValidations() {
+        for (Map.Entry<EditText, StringPredicate> e : mValidators.entrySet()) {
+            EditText textField = e.getKey();
+            textField.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String text = textField.getText().toString();
+                    if (mValidators.get(textField).test(text)) {
+                        //textField.setTextColor(Color.BLACK);
+                    } else {
+                        //textField.setTextColor(Color.RED);
+                        textField.setError("Invalid input");
+                    }
+                }
+            });
+            textField.setOnFocusChangeListener((v, hasFocus) -> {
+                String text = textField.getText().toString();
+                if (!hasFocus) {
+                    if (!mValidators.get(textField).test(text)) {
+                        new AlertDialog.Builder(this).
+                                setTitle("Invalid Input").
+                                setMessage("\"" + text + "\" is not a valid value for ...\nValid inputs are: (<num>dp|sp|px|in|mm)|match_parent|wrap_content").
+                                setPositiveButton("OK", (dialog, which) -> {
+                                    textField.requestFocus();
+                                }).
+                                create().show();
+                    }
+                }
+            });
+        }
+    }
+
+    private boolean validateField(EditText field) {
+        StringPredicate validator = mValidators.get(field);
+        String text = field.getText().toString();
+        if (!validator.test(text)) {
+            Log.v(LOG_TAG, text + " is invalid");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Invalid entry: " + text).
+                    setPositiveButton("OK", (dialog, which) -> {}).
+                    create().show();
+            return false;
+        }
+        else
+            return true;
     }
 
     // Add ListPopupWindows to the text fields with a dropdown icon
@@ -209,6 +275,8 @@ public class EditImageViewActivity extends AppCompatActivity {
                     mBind.maxHeightLabel.setEnabled(true);
                 }
                 else {
+//                    int color = mBind.maxWidthEdit.getHintTextColors().getDefaultColor();
+                    mBind.maxWidthEdit.setTextColor(getColor(R.color.disabled_color));
                     mBind.maxWidthLabel.setEnabled(false);
                     mBind.maxWidthEdit.setEnabled(false);
                     mBind.maxHeightEdit.setEnabled(false);
@@ -247,16 +315,20 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     private void validateValues() {
-        for (Map.Entry<EditText, Predicate<String>> e : mValidators.entrySet()) {
+        for (Map.Entry<EditText, StringPredicate> e : mValidators.entrySet()) {
             String text = e.getKey().getText().toString();
             if (!e.getValue().test(text)) {
+                Log.v(LOG_TAG, text + " is invalid");
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Invalid entry: " + text).
                         setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {}
                         }).create().show();
+                break;
             }
+            else
+                Log.v(LOG_TAG, text + " is valid");
         }
     }
 
@@ -300,6 +372,7 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     // Called when the save button in the toolbar is clicked
     public void onSaveClicked(View view) {
+        //validateValues();
         saveValues();
         Toast.makeText(this, R.string.toast_changes_applied, Toast.LENGTH_SHORT).show();
         finish();
