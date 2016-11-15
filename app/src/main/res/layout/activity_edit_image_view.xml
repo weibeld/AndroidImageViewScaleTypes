@@ -62,9 +62,10 @@
                     android:layout_marginTop="0dp"
                     android:text="@string/layout_width_label"
                     />
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/layout_width_edit"
                     style="@style/EditImageViewTextField"
+                    android:completionThreshold="1"
                     />
 
 
@@ -75,9 +76,10 @@
                     style="@style/EditImageViewTextLabel"
                     android:text="@string/layout_height_label"
                     />
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/layout_height_edit"
                     style="@style/EditImageViewTextField"
+                    android:completionThreshold="1"
                     />
 
 
@@ -88,9 +90,10 @@
                     style="@style/EditImageViewTextLabel"
                     android:text="@string/background_label"
                     />
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/background_edit"
                     style="@style/EditImageViewTextField"
+                    android:completionThreshold="1"
                     />
 
 
@@ -114,9 +117,10 @@
                     style="@style/EditImageViewTextLabel"
                     android:text="@string/maxWidth_label"
                     />
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/maxWidth_edit"
                     style="@style/EditImageViewTextField"
+                    android:completionThreshold="1"
                     />
 
 
@@ -127,9 +131,10 @@
                     style="@style/EditImageViewTextLabel"
                     android:text="@string/maxHeight_label"
                     />
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/maxHeight_edit"
                     style="@style/EditImageViewTextField"
+                    android:completionThreshold="1"
                     />
 
 

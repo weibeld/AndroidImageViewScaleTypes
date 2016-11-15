@@ -16,11 +16,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageViewBinding;
+import org.weibeld.example.imageviewscaletypes.AutoComplAdapter.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +46,20 @@ public class EditImageViewActivity extends AppCompatActivity {
     private Map<EditText, StringPredicate> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
     private Map<EditText, TextView> mMapLabels;
+    private Map<AutoCompleteTextView, AutoComplAdapter> mMapAutoCompl;
 
     // The default text colours of an EditText in different states (e.g. enabled, disabled)
     private ColorStateList mDefaultColorEditText;
+
+    private String[] dimenVals1 = new String[] {
+            "1dp", "1sp", "1px", "1in", "1mm", "11dp", "11sp", "11px", "11in", "11mm", "wrap_content", "match_parent"
+    };
+    private String[] dimenVals2 = new String[] {
+            "1dp", "1sp", "1px", "1in", "1mm"
+    };
+    private String[] colorVals = new String[] {
+            "green", "grey", "gray", "blue", "brown"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,14 +76,29 @@ public class EditImageViewActivity extends AppCompatActivity {
         logTextColors();
 
         initMappings();
+
+        setupAutoComplete();
+
         setupValidations();
-        //setupPopupFields();
+        setupPopupFields();
         setupEmptiableFields(new EditText[] {mBind.backgroundEdit, mBind.maxWidthEdit, mBind.maxHeightEdit});
         setupAdjustViewBoundsField();
         // TODO: add colour picker
 
         // Load text into fields (call after above setup methods to trigger text change listeners)
         loadValues();
+    }
+
+    private void setupAutoComplete() {
+        for (Map.Entry<AutoCompleteTextView, AutoComplAdapter> e : mMapAutoCompl.entrySet()) {
+            e.getKey().setAdapter(e.getValue());
+            e.getKey().addTextChangedListener(new MyTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    e.getValue().getFilter().filter(s);
+                }
+            });
+        }
     }
 
     // Create mapping between text fields and SharedPreferences entries
@@ -98,6 +126,14 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapLabels.put(mBind.adjustViewBoundsEdit, mBind.adjustViewBoundsLabel);
         mMapLabels.put(mBind.maxWidthEdit, mBind.maxWidthLabel);
         mMapLabels.put(mBind.maxHeightEdit, mBind.maxHeightLabel);
+
+        int itemLayout = android.R.layout.simple_spinner_item;
+        mMapAutoCompl = new HashMap<>();
+        mMapAutoCompl.put(mBind.layoutWidthEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
+        mMapAutoCompl.put(mBind.layoutHeightEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
+        mMapAutoCompl.put(mBind.backgroundEdit, new ColorAutoComplAdapter(this, itemLayout));
+        mMapAutoCompl.put(mBind.maxWidthEdit, new DimenAutoComplAdapter(this, itemLayout));
+        mMapAutoCompl.put(mBind.maxHeightEdit, new DimenAutoComplAdapter(this, itemLayout));
     }
 
     // Add OnFocusChangeListeners to text fields so that whenever a field loses focus, the content
@@ -146,14 +182,14 @@ public class EditImageViewActivity extends AppCompatActivity {
     private void setupPopupFields() {
         // Text fields with a dropdown icon
         final EditText[] popupFields = new EditText[] {
-                mBind.layoutWidthEdit,
-                mBind.layoutHeightEdit,
+                //mBind.layoutWidthEdit,
+                //mBind.layoutHeightEdit,
                 mBind.adjustViewBoundsEdit
         };
         // Data for each of the ListPopupWindows
         final String[][] popupData = new String[][] {
-                Data.ARR_DIMEN_KEYWORDS,
-                Data.ARR_DIMEN_KEYWORDS,
+                //Data.ARR_DIMEN_KEYWORDS,
+                //Data.ARR_DIMEN_KEYWORDS,
                 Data.ARR_BOOL
         };
         // Create and setup ListPopupWindows

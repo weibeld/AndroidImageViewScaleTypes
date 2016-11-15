@@ -2,7 +2,13 @@ package org.weibeld.example.imageviewscaletypes;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.weibeld.example.imageviewscaletypes.Util.parseDimensionValue;
 
 /**
@@ -155,5 +161,47 @@ public class ExampleUnitTest {
             // Throws a NumberFormatException if it does not recognise the string
             Float.parseFloat(validStrings[i]);
         }
+    }
+
+
+    @Test
+    public void autoComplTest() throws Exception {
+        String[] input = new String[] {
+                "1", ".", "d", "dp", "ff1dp", "m", "ma", "match_parent", "parent", "ama"
+        };
+        String regex = "^(\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(dp|sp|px|in|mm))|match_parent|wrap_content$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher("");
+
+        for (String s : input) {
+            m.reset(s);
+            System.out.println(s + ": matches == " + m.matches() + ", hitEnd == " + m.hitEnd() + ", lookingAt == " + m.lookingAt() + ", find(0) == " + m.find());
+        }
+    }
+
+    @Test
+    public void autoComplTest2() throws Exception {
+        String[] input = new String[] {
+                "1", ".", "d", "dp", "ff1dp"
+        };
+        Pattern patNum = Pattern.compile("\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))");
+        Pattern patUnitD = Pattern.compile(patNum.pattern() + "d");
+        Pattern patUnitS = Pattern.compile(patNum.pattern() + "s");
+        Pattern patUnitP = Pattern.compile(patNum.pattern() + "p");
+        Pattern patUnitI = Pattern.compile(patNum.pattern() + "i");
+        Pattern patUnitM = Pattern.compile(patNum.pattern() + "m");
+        Pattern patUnitDP = Pattern.compile(patUnitD.pattern() + "p");
+        Pattern patUnitSP = Pattern.compile(patUnitS.pattern() + "p");
+        Pattern patUnitPX = Pattern.compile(patUnitP.pattern() + "x");
+        Pattern patUnitIN = Pattern.compile(patUnitI.pattern() + "n");
+        Pattern patUnitMM = Pattern.compile(patUnitM.pattern() + "m");
+
+//        Map<Pattern, String[]> mapSuggestions = new HashMap<>();
+//        mapSuggestions.put(patNum, new String[]);
+//
+//        for (String s : input) {
+//            m.reset(s);
+//            System.out.println(s + ": matches == " + m.matches() + ", hitEnd == " + m.hitEnd() + ", lookingAt == " + m.lookingAt() + ", find(0) == " + m.find());
+//        }
     }
 }

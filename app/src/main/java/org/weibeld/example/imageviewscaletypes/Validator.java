@@ -35,7 +35,7 @@ public class Validator {
     public static boolean isValidColorEntry(String str) {
         // We use the colour format defined by Color.parseColor plus the empty string for not
         // specifying a background colour at all.
-        String regex = "^$|(^(#([a-fA-F0-9]{6}|[a-fA-F0-9]{8}))|red|blue|green|black|white|gray|cyan|magenta|yellow|lightgray|darkgray|grey|lightgrey|darkgrey|aqua|fuchsia|lime|maroon|navy|olive|purple|silver|teal$)";
+        String regex = "^$|(#[a-fA-F0-9]{6})|(#[a-fA-F0-9]{8})|red|blue|green|black|white|gray|cyan|magenta|yellow|lightgray|darkgray|grey|lightgrey|darkgrey|aqua|fuchsia|lime|maroon|navy|olive|purple|silver|teal";
         return str.matches(regex);
     }
 
