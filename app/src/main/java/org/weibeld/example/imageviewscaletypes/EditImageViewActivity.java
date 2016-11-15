@@ -38,27 +38,15 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
-    // Mapping from text fields to SharedPreferences and  vice versa
-    private EditText[] mTextFields;
-    private int[] mPrefKeys;
-
     // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
 
     private Map<EditText, StringPredicate> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
+    private Map<EditText, TextView> mMapLabels;
 
     // The default text colours of an EditText in different states (e.g. enabled, disabled)
-    private ColorStateList mDefaultColorsEditText;
-
-    // Functional interface to be used for lambda expressions. This is only necessary, because
-    // currently the Java standard functional interfaces in java.util.function cannot be used for
-    // devices with API level < 24 (neither with Jack, nor with Retrolambda). If we would target
-    // API level >= 24, we could just use the predefined Predicate<String> interface.
-    // http://stackoverflow.com/questions/38607149/is-there-a-way-to-use-java-8-functional-interfaces-on-android-api-below-24
-    interface StringPredicate {
-        boolean test(String s);
-    }
+    private ColorStateList mDefaultColorEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,13 +59,13 @@ public class EditImageViewActivity extends AppCompatActivity {
         mBind.toolbar.setNavigationOnClickListener(v -> confirmExit());
 
         // Back up the default colours of EditText
-        mDefaultColorsEditText = mBind.layoutWidthEdit.getTextColors();
+        mDefaultColorEditText = mBind.layoutWidthEdit.getTextColors();
         logTextColors();
 
-        initMapping();
+        initMappings();
         setupValidations();
-        setupPopupFields();
-        setupEmptiableFields();
+        //setupPopupFields();
+        setupEmptiableFields(new EditText[] {mBind.backgroundEdit, mBind.maxWidthEdit, mBind.maxHeightEdit});
         setupAdjustViewBoundsField();
         // TODO: add colour picker
 
@@ -86,24 +74,7 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     // Create mapping between text fields and SharedPreferences entries
-    private void initMapping() {
-        mTextFields = new EditText[] {
-                mBind.layoutWidthEdit,
-                mBind.layoutHeightEdit,
-                mBind.backgroundEdit,
-                mBind.adjustViewBoundsEdit,
-                mBind.maxWidthEdit,
-                mBind.maxHeightEdit
-        };
-        mPrefKeys = new int[] {
-                R.string.pref_layout_width_key,
-                R.string.pref_layout_height_key,
-                R.string.pref_background_key,
-                R.string.pref_adjustViewBounds_key,
-                R.string.pref_maxWidth_key,
-                R.string.pref_maxHeight_key
-        };
-
+    private void initMappings() {
         mMapPrefKeys = new HashMap<>();
         mMapPrefKeys.put(mBind.layoutWidthEdit, R.string.pref_layout_width_key);
         mMapPrefKeys.put(mBind.layoutHeightEdit, R.string.pref_layout_height_key);
@@ -119,34 +90,39 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
         mMapValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
         mMapValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
+
+        mMapLabels = new HashMap<>();
+        mMapLabels.put(mBind.layoutWidthEdit, mBind.layoutWidthLabel);
+        mMapLabels.put(mBind.layoutHeightEdit, mBind.layoutHeightLabel);
+        mMapLabels.put(mBind.backgroundEdit, mBind.backgroundLabel);
+        mMapLabels.put(mBind.adjustViewBoundsEdit, mBind.adjustViewBoundsLabel);
+        mMapLabels.put(mBind.maxWidthEdit, mBind.maxWidthLabel);
+        mMapLabels.put(mBind.maxHeightEdit, mBind.maxHeightLabel);
     }
 
     // Add OnFocusChangeListeners to text fields so that whenever a field loses focus, the content
     // of the field is validated, and the focus remains on this field.
     private void setupValidations() {
-        for (Map.Entry<EditText, StringPredicate> e : mMapValidators.entrySet()) {
-            EditText textField = e.getKey();
-            textField.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
+        for (Map.Entry<EditText, StringPredicate> entry : mMapValidators.entrySet()) {
+            EditText e = entry.getKey();
+            e.addTextChangedListener(new MyTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
-                    String input = textField.getText().toString();
-                    if (mMapValidators.get(textField).test(input))
-                        textField.setTextColor(mDefaultColorsEditText);
+                    // Remove error indication if one is still set (may occur if reset is clicked)
+                    e.setError(null);
+                    String input = e.getText().toString();
+                    if (entry.getValue().test(input))
+                        e.setTextColor(mDefaultColorEditText);
                     else
-                        textField.setTextColor(getColor(R.color.colorInvalidInput));
+                        e.setTextColor(getColor(R.color.colorInvalidInput));
                         //textField.setError("Invalid input");
                 }
             });
-            textField.setOnFocusChangeListener((v, hasFocus) -> {
+            e.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) return;
-                if (!mMapValidators.get(textField).test(textField.getText().toString()))
-                    showInvalidInputDialog(textField);
+                if (!entry.getValue().test(e.getText().toString()))
+                    e.setError("Invalid input");
+                    //showInvalidInputDialog(e);
             });
         }
     }
@@ -220,36 +196,19 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     // Add "strikethrough" functionality to the text fields that can be left empty
-    private void setupEmptiableFields() {
-        final EditText[] fields = new EditText[] {
-                mBind.backgroundEdit,  // Note: setting no background disables elevation
-                mBind.maxWidthEdit,
-                mBind.maxHeightEdit
-        };
-        final TextView[] labels = new TextView[] {
-                mBind.backgroundLabel,
-                mBind.maxWidthLabel,
-                mBind.maxHeightLabel
-        };
-        // If a field is left empty, strike through the corresponding label
-        for (int i = 0; i < fields.length; i++) {
-            final int I = i;
-            // Called on every text change (i.e. every character typed)
-            fields[i].addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+    // Note: leaving background empty disables elevation
+    private void setupEmptiableFields(EditText[] editTexts) {
+        for (EditText e : editTexts) {
+            e.addTextChangedListener(new MyTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
-                    int mode = labels[I].getPaintFlags();
+                    int mode = mMapLabels.get(e).getPaintFlags();
                     int flag = Paint.STRIKE_THRU_TEXT_FLAG;
-                    // If text field is empty, add strikethrough flag
-                    if (fields[I].getText().toString().equals(""))
-                        labels[I].setPaintFlags(Util.setFlag(mode, flag));
-                    // If text field is non-empty, make sure strikethrough flag is removed
+                    if (e.getText().toString().equals(""))
+                        mode = Util.setFlag(mode, flag);
                     else
-                        labels[I].setPaintFlags(Util.unsetFlag(mode, flag));
+                        mode = Util.unsetFlag(mode, flag);
+                    mMapLabels.get(e).setPaintFlags(mode);
                 }
             });
         }
@@ -260,11 +219,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         // The following two settings don't work when defined in XML (possible Android bug?)
         mBind.adjustViewBoundsEdit.setKeyListener(null);        // Make field non-editable
         mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);  // Disable selectAllOnFocus
-        mBind.adjustViewBoundsEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        mBind.adjustViewBoundsEdit.addTextChangedListener(new MyTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 if (mBind.adjustViewBoundsEdit.getText().toString().equals(Data.TRUE)) {
@@ -283,31 +238,25 @@ public class EditImageViewActivity extends AppCompatActivity {
         });
     }
 
-
-    // Get the SharedPreference entry at a specific index in the arrays initialised by initMapping
-    private String getPref(int index) {
-        return Pref.get(this, mPrefKeys[index]);
-    }
-
     // Load values from SharedPreferences into the corresponding text fields
     private void loadValues() {
-        for (int i = 0; i < mTextFields.length; i++) {
-            mTextFields[i].setText(getPref(i));
+        for (Map.Entry<EditText, Integer> e : mMapPrefKeys.entrySet()) {
+            e.getKey().setText(Pref.get(this, e.getValue()));
         }
     }
 
     // Load default values of SharedPreferences into the corresponding text fields
     private void loadDefaultValues() {
-        for (int i = 0; i < mTextFields.length; i++) {
-            mTextFields[i].setText(Pref.getDefault(this, mPrefKeys[i]));
+        for (Map.Entry<EditText, Integer> e : mMapPrefKeys.entrySet()) {
+            e.getKey().setText(Pref.getDefault(this, e.getValue()));
         }
     }
 
     // TODO: validate values on save
     // Save values from text fields to the corresponding SharedPreference entries
     private void saveValues() {
-        for (int i = 0; i < mTextFields.length; i++) {
-            Pref.put(this, mPrefKeys[i], mTextFields[i].getText().toString());
+        for (Map.Entry<EditText, Integer> entry : mMapPrefKeys.entrySet()) {
+            Pref.put(this, entry.getValue(), entry.getKey().getText().toString());
         }
     }
 
@@ -331,8 +280,9 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     // Check if any changes have been made so far in the text fields w.r.t. the SharedPreferences
     private boolean hasChanges() {
-        for (int i = 0; i < mTextFields.length; i++) {
-            if (!mTextFields[i].getText().toString().equals(getPref(i))) return true;
+        for (Map.Entry<EditText, Integer> e : mMapPrefKeys.entrySet()) {
+            if (!e.getKey().getText().toString().equals(Pref.get(this, e.getValue())))
+                return true;
         }
         return false;
     }
@@ -341,18 +291,12 @@ public class EditImageViewActivity extends AppCompatActivity {
     // pressing the device back button) if any edits have been made so far in the text fields
     private void confirmExit() {
         if (hasChanges()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.exit_dialog_message).
-                    setNegativeButton(R.string.exit_dialog_neg_button, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {}
-                    }).
-                    setPositiveButton(R.string.exit_dialog_pos_button, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    }).create().show();
+            new AlertDialog.Builder(this).
+                    setMessage(R.string.exit_dialog_msg).
+                    setNegativeButton(R.string.exit_dialog_neg, (dialog, which) -> {}).
+                    setPositiveButton(R.string.exit_dialog_pos, (dialog, which) -> finish()).
+                    create().
+                    show();
         }
         else {
             Toast.makeText(this, R.string.toast_no_changes, Toast.LENGTH_SHORT).show();
@@ -377,11 +321,33 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     // Called when the "Reset Defaults" button is clicked
     public void onResetClicked(View view) {
+        // TODO: scroll to top
         loadDefaultValues();
     }
 
+
+    // Functional interface to be used for lambda expressions. This is only necessary, because
+    // currently the Java standard functional interfaces in java.util.function cannot be used for
+    // devices with API level < 24 (neither with Jack, nor with Retrolambda). If we would target
+    // API level >= 24, we could just use the predefined Predicate<String> interface.
+    // http://stackoverflow.com/questions/38607149/is-there-a-way-to-use-java-8-functional-interfaces-on-android-api-below-24
+    interface StringPredicate {
+        boolean test(String s);
+    }
+
+    // Provide default empty implementations of beforeTextChanged and onTextChanged of TextWatcher,
+    // because we always only use afterTextChanged
+    private abstract class MyTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+    }
+
     // This method is for debugging only. Find out the default text colours for the "enabled" and
-    // "disabled" state of EditText and TextView.
+    // "disabled" state of EditText and TextView. Example: http://www.programcreek.com/
+    // java-api-examples/index.php?class=android.content.res.ColorStateList&method=getColorForState
     private void logTextColors() {
         // Get ColorStateLists (defines text colors for all possible states that the View can be in)
         ColorStateList cslEditText = mBind.maxWidthEdit.getTextColors();

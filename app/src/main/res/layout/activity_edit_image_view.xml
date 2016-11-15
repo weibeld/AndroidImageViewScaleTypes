@@ -64,7 +64,7 @@
                     />
                 <EditText
                     android:id="@+id/layout_width_edit"
-                    style="@style/EditImageViewTextField.Dropdown"
+                    style="@style/EditImageViewTextField"
                     />
 
 
@@ -77,7 +77,7 @@
                     />
                 <EditText
                     android:id="@+id/layout_height_edit"
-                    style="@style/EditImageViewTextField.Dropdown"
+                    style="@style/EditImageViewTextField"
                     />
 
 
@@ -90,7 +90,7 @@
                     />
                 <EditText
                     android:id="@+id/background_edit"
-                    style="@style/EditImageViewTextField.Color"
+                    style="@style/EditImageViewTextField"
                     />
 
 

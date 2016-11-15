@@ -125,7 +125,7 @@ public class ExampleUnitTest {
         // First, test if valid colour entries are positively validated
         String[] validEntries = new String[] {
                 "#FFFFFF", "#FFFFFFFF", "#000000", "#00000000", "#aaaaaa", "#aaaaaaaa",
-                "#fA0fA0", "#fA0efA0e", "green", "cyan"
+                "#fA0fA0", "#fA0efA0e", "green", "cyan", ""
         };
         for (int i = 0; i < validEntries.length; i++) {
             msg = "\"" + validEntries[i] + "\"" + " should be valid.";
