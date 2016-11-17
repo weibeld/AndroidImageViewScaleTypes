@@ -17,7 +17,7 @@ public class Validator {
         }
     }
 
-    public static boolean isValidLayoutWidthHeightEntry(String str) {
+    public static boolean isValidLayoutDimenEntry(String str) {
         switch (str) {
             case Data.WRAP_CONTENT:
                 return true;
@@ -35,13 +35,13 @@ public class Validator {
     public static boolean isValidColorEntry(String str) {
         // We use the colour format defined by Color.parseColor plus the empty string for not
         // specifying a background colour at all.
-        String regex = "^$|(#[a-fA-F0-9]{6})|(#[a-fA-F0-9]{8})|red|blue|green|black|white|gray|cyan|magenta|yellow|lightgray|darkgray|grey|lightgrey|darkgrey|aqua|fuchsia|lime|maroon|navy|olive|purple|silver|teal";
+        String regex = "^$|(#[a-fA-F0-9]{6})|(#[a-fA-F0-9]{8})|" + Data.REGEX_NAMED_COLORS;
         return str.matches(regex);
     }
 
     // Test if a string has a valid "<value><unit>" format, such as "14.5dp"
     private static boolean isValidDimenString(String str) {
-        String regex = "^\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(";
+        String regex = "^((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(";
         for (int i = 0; i < Data.ARR_DIMEN_UNITS.length; i++) {
             regex += Data.ARR_DIMEN_UNITS[i];
             if (i < Data.ARR_DIMEN_UNITS.length - 1) regex += "|";

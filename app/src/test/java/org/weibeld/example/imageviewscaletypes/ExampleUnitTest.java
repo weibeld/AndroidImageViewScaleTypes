@@ -62,7 +62,7 @@ public class ExampleUnitTest {
         };
         for (int i = 0; i < validEntries.length; i++) {
             msg = "\"" + validEntries[i] + "\"" + " should be valid.";
-            assertTrue(msg, Validator.isValidLayoutWidthHeightEntry(validEntries[i]));
+            assertTrue(msg, Validator.isValidLayoutDimenEntry(validEntries[i]));
         }
 
         // Next, test if invalid layout_width/layout_height entries are negatively validated
@@ -72,7 +72,7 @@ public class ExampleUnitTest {
         };
         for (int i = 0; i < invalidEntries.length; i++) {
             msg = "\"" + invalidEntries[i] + "\"" + " should be invalid.";
-            assertFalse(msg, Validator.isValidLayoutWidthHeightEntry(invalidEntries[i]));
+            assertFalse(msg, Validator.isValidLayoutDimenEntry(invalidEntries[i]));
         }
     }
 
@@ -167,15 +167,16 @@ public class ExampleUnitTest {
     @Test
     public void autoComplTest() throws Exception {
         String[] input = new String[] {
-                "1", ".", "d", "dp", "ff1dp", "m", "ma", "match_parent", "parent", "ama"
+                "100", "1", "01", "00.1", "0006", "00024.3543", "0.0001", "0", "0.", ".0"
         };
-        String regex = "^(\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(dp|sp|px|in|mm))|match_parent|wrap_content$";
+        //String regex = "^\\-?((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))";
+        String regex = "((0\\.\\d+)|([1-9]\\d*\\.\\d+)|(0\\.)|([1-9]\\d*\\.)|(\\.\\d+)|(0)|([1-9]\\d*))";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher("");
 
         for (String s : input) {
             m.reset(s);
-            System.out.println(s + ": matches == " + m.matches() + ", hitEnd == " + m.hitEnd() + ", lookingAt == " + m.lookingAt() + ", find(0) == " + m.find());
+            System.out.println(s + ": matches == " + m.matches() + ", hitEnd == " + m.hitEnd() + ", lookingAt == " + m.lookingAt() + ", find() == " + m.find());
         }
     }
 
@@ -195,6 +196,20 @@ public class ExampleUnitTest {
         Pattern patUnitPX = Pattern.compile(patUnitP.pattern() + "x");
         Pattern patUnitIN = Pattern.compile(patUnitI.pattern() + "n");
         Pattern patUnitMM = Pattern.compile(patUnitM.pattern() + "m");
+
+//        Pattern p = Pattern.compile("^[a-zA-Z]+([0-9]+).*");
+//        Matcher m = p.matcher("Testing123Testing");
+//
+//        if (m.find()) {
+//            System.out.println(m.group(1));
+//        }
+
+        String mydata = "some string with the data i want inside";
+        Pattern pattern = Pattern.compile("'(.*?)'");
+        Matcher matcher = pattern.matcher(mydata);
+        if (matcher.find()) {
+            System.out.println(matcher.group(0));
+        }
 
 //        Map<Pattern, String[]> mapSuggestions = new HashMap<>();
 //        mapSuggestions.put(patNum, new String[]);

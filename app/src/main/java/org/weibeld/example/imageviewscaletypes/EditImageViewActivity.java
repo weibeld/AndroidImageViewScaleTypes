@@ -90,6 +90,8 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     private void setupAutoComplete() {
+        
+
         for (Map.Entry<AutoCompleteTextView, AutoComplAdapter> e : mMapAutoCompl.entrySet()) {
             e.getKey().setAdapter(e.getValue());
             e.getKey().addTextChangedListener(new MyTextWatcher() {
@@ -112,8 +114,8 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapPrefKeys.put(mBind.maxHeightEdit, R.string.pref_maxHeight_key);
 
         mMapValidators = new HashMap<>();
-        mMapValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutWidthHeightEntry);
-        mMapValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutWidthHeightEntry);
+        mMapValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutDimenEntry);
+        mMapValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutDimenEntry);
         mMapValidators.put(mBind.backgroundEdit, Validator::isValidColorEntry);
         mMapValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
         mMapValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
@@ -127,7 +129,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapLabels.put(mBind.maxWidthEdit, mBind.maxWidthLabel);
         mMapLabels.put(mBind.maxHeightEdit, mBind.maxHeightLabel);
 
-        int itemLayout = android.R.layout.simple_spinner_item;
+        int itemLayout = R.layout.item_autocomplete;
         mMapAutoCompl = new HashMap<>();
         mMapAutoCompl.put(mBind.layoutWidthEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
         mMapAutoCompl.put(mBind.layoutHeightEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
@@ -192,6 +194,7 @@ public class EditImageViewActivity extends AppCompatActivity {
                 //Data.ARR_DIMEN_KEYWORDS,
                 Data.ARR_BOOL
         };
+        int itemLayout = R.layout.item_autocomplete;
         // Create and setup ListPopupWindows
         mPopupWindows = new ListPopupWindow[popupFields.length];
         for (int i = 0; i < popupFields.length; i++) {
@@ -201,7 +204,7 @@ public class EditImageViewActivity extends AppCompatActivity {
             mPopupWindows[i].setVerticalOffset(-10);
             mPopupWindows[i].setAdapter(new ArrayAdapter<>(
                     this,
-                    android.R.layout.simple_spinner_dropdown_item,
+                    itemLayout,
                     popupData[i]
             ));
             final int I = i;
