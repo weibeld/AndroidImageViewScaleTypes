@@ -28,14 +28,14 @@
         <item name="android:imeOptions">actionDone|flagNoExtractUi</item>
     </style>
 
-    <!-- EditTexts with an expand dropdown icon on the right -->
-    <style name="EditImageViewTextField.Dropdown" parent="EditImageViewTextField">
-        <item name="android:drawableRight">@drawable/ic_expand_more_black_24dp</item>
+    <!-- AutoCompleteTexts -->
+    <style name="EditImageViewTextField.AutoCompl" parent="EditImageViewTextField">
+        <item name="android:completionThreshold">1</item>
     </style>
 
-    <!-- EditText with a colour picker icon on the right -->
-    <style name="EditImageViewTextField.Color" parent="EditImageViewTextField">
-        <item name="android:drawableRight">@drawable/ic_tune_black_24dp</item>
+    <!-- EditTexts with an dropdown icon on the right -->
+    <style name="EditImageViewTextField.Dropdown" parent="EditImageViewTextField">
+        <item name="android:drawableRight">@drawable/ic_expand_more_black_24dp</item>
     </style>
 
     <!-- Style for the labels of the EditTexts in EditImageViewActivity -->

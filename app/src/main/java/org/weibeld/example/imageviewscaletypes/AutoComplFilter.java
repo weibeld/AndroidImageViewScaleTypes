@@ -1,8 +1,8 @@
 package org.weibeld.example.imageviewscaletypes;
 
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,17 +12,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Filter for providing customised auto completion suggestions for an input string.
+ * <p>Filter for providing customised auto completion suggestions for an input string.</p>
  *
- * The concrete auto completion suggestion strategies are implemented in the subclasses
- * {@link DimenAutoComplFilter} and {@link LayoutDimenAutoComplFilter}.
+ * <p>The concrete auto completion suggestion strategies are implemented in the subclasses
+ * {@link DimenAutoComplFilter} and {@link LayoutDimenAutoComplFilter}.</p>
  *
- * This filter is initialised with an {@link ArrayAdapter<String>} and it loads the
- * found suggestions into this ArrayAdapter, replacing the previous data of the adapter (see
+ * <p>This filter is initialised with an {@link ArrayAdapter<String>} and it dynamically loads the
+ * found suggestions into this adapter, replacing the previous data content of the adapter (see
  * {@link #publishResults(CharSequence, FilterResults)}). If no suggestions are found for a given
- * input string, then the ArrayAdapter is left empty.
+ * input string, then the ArrayAdapter is left empty.</p>
  *
- * The ArrayAdapter used by this filter can be used with a {@link android.widget.AutoCompleteTextView}.
+ * <p>The adapter used by this filter should be the same {@link AutoComplAdapter} that is also used
+ * for an {@link android.widget.AutoCompleteTextView}. Then, on each keystroke in the text field,
+ * this filter can be obtained via {@link AutoComplAdapter#getFilter()}, and
+ * {@link Filter#filter(CharSequence)} can be called. This triggers the filtering process, which
+ * finally updates the data of the {@link android.widget.AutoCompleteTextView}'s adapter, as
+ * described above.</p>
  */
 public abstract class AutoComplFilter extends Filter {
     protected final String LOG_TAG = AutoComplFilter.class.getSimpleName();
@@ -68,11 +73,11 @@ public abstract class AutoComplFilter extends Filter {
 
         public DimenAutoComplFilter(ArrayAdapter<String> adapter) {
             super(adapter);
-            mPatNum = Pattern.compile("^" + Data.REGEX_NUM);
+            mPatNum = Pattern.compile(Data.getRegexNum());
             // Create <value><unit> pattern for each unit and associate with "replace" unit string
             mMapPat = new HashMap<>();
             for (String s : Data.ARR_DIMEN_UNITS) {
-                mMapPat.put(Pattern.compile(Data.REGEX_NUM + s), s);
+                mMapPat.put(Pattern.compile(Data.getRegexNum() + s), s);
             }
         }
 
@@ -126,6 +131,7 @@ public abstract class AutoComplFilter extends Filter {
 
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
+            Log.v(LOG_TAG, "performFiltering");
             FilterResults results = initEmptyFilterResults();
             if (constraint == null) return results;
             // Test if input can be expanded to "wrap_content" or "match_parent"
@@ -142,36 +148,6 @@ public abstract class AutoComplFilter extends Filter {
             if (suggestions.size() == 0) suggestions = filterDimen(input);
             results.values = suggestions;
             results.count = suggestions.size();
-            return results;
-        }
-    }
-
-
-
-    public static class ColorAutoComplFilter extends AutoComplFilter {
-        private Map<Pattern, String> mMapPat;
-
-        public ColorAutoComplFilter(ArrayAdapter<String> adapter) {
-            super(adapter);
-            mMapPat = new HashMap<>();
-            for (String s : Data.ARR_COLORS) {
-                mMapPat.put(Pattern.compile(s), s);
-            }
-        }
-
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            if (constraint == null) return null;
-            ArrayList<String> suggestions = new ArrayList<>();
-            String input = constraint.toString();
-            for (Map.Entry<Pattern, String> e : mMapPat.entrySet()) {
-                Matcher matcher = e.getKey().matcher(input);
-                if (matcher.matches() || matcher.hitEnd())
-                    suggestions.add(e.getValue());
-            }
-            FilterResults results = new FilterResults();
-            results.count = suggestions.size();
-            results.values = suggestions;
             return results;
         }
     }

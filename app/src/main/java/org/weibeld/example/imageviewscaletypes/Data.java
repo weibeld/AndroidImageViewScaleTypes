@@ -28,34 +28,73 @@ class Data {
     };
 
     // Color strings accepted by Color.parseColor (except "grey" variants)
-    static final String COLOR_RED = "red";
-    static final String COLOR_BLUE = "blue";
-    static final String COLOR_GREEN = "green";
-    static final String COLOR_BLACK = "black";
-    static final String COLOR_WHITE = "white";
-    static final String COLOR_GRAY = "gray";
-    static final String COLOR_CYAN = "cyan";
-    static final String COLOR_MAGENTA = "magenta";
-    static final String COLOR_YELLOW = "yellow";
-    static final String COLOR_LIGHTGRAY = "lightgray";
-    static final String COLOR_DARKGRAY = "darkgray";
-    static final String COLOR_AQUA = "aqua";
-    static final String COLOR_FUCHSIA = "fuchsia";
-    static final String COLOR_LIME = "lime";
-    static final String COLOR_MAROON = "maroon";
-    static final String COLOR_NAVY = "navy";
-    static final String COLOR_OLIVE = "olive";
-    static final String COLOR_PURPLE = "purple";
-    static final String COLOR_SILVER = "silver";
-    static final String COLOR_TEAL = "teal";
+    static final String COLOR_RED = "Red";
+    static final String COLOR_BLUE = "Blue";
+    static final String COLOR_GREEN = "Green";
+    static final String COLOR_BLACK = "Black";
+    static final String COLOR_WHITE = "White";
+    static final String COLOR_GRAY = "Gray";
+    static final String COLOR_CYAN = "Cyan";
+    static final String COLOR_MAGENTA = "Magenta";
+    static final String COLOR_YELLOW = "Yellow";
+    static final String COLOR_LIGHTGRAY = "Lightgray";
+    static final String COLOR_DARKGRAY = "Darkgray";
+    static final String COLOR_AQUA = "Aqua";
+    static final String COLOR_FUCHSIA = "Fuchsia";
+    static final String COLOR_LIME = "Lime";
+    static final String COLOR_MAROON = "Maroon";
+    static final String COLOR_NAVY = "Navy";
+    static final String COLOR_OLIVE = "Olive";
+    static final String COLOR_PURPLE = "Purple";
+    static final String COLOR_SILVER = "Silver";
+    static final String COLOR_TEAL = "Teal";
     static final String[] ARR_COLORS = new String[] {
             COLOR_RED, COLOR_BLUE, COLOR_GREEN, COLOR_BLACK, COLOR_WHITE, COLOR_GRAY, COLOR_CYAN,
             COLOR_MAGENTA, COLOR_YELLOW, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_AQUA, COLOR_FUCHSIA,
             COLOR_LIME, COLOR_MAROON, COLOR_NAVY, COLOR_OLIVE, COLOR_PURPLE, COLOR_SILVER, COLOR_TEAL
     };
-    static final String REGEX_NAMED_COLORS = "red|blue|green|black|white|gray|cyan|magenta|yellow|lightgray|darkgray|grey|lightgrey|darkgrey|aqua|fuchsia|lime|maroon|navy|olive|purple|silver|teal";
 
-    static final String REGEX_NUM = "((0\\.\\d+)|([1-9]\\d*\\.\\d+)|(0\\.)|([1-9]\\d*\\.)|(\\.\\d+)|(0)|([1-9]\\d*))";
+    private static final String REGEX_NUM = "^((0\\.\\d+)|([1-9]\\d*\\.\\d+)|(0\\.)|([1-9]\\d*\\.)|(\\.\\d+)|(0)|([1-9]\\d*))";
+    private static final String REGEX_RGB = "(#[a-fA-F0-9]{8})|(#[a-fA-F0-9]{6})";
+    private static final String REGEX_EMPTY = "^$";
+
+
+    static String getRegexNum() {
+        return REGEX_NUM;
+    }
+    static String getRegexRgb() {
+        return REGEX_RGB;
+    }
+    static String getRegexEmpty() {
+        return REGEX_EMPTY;
+    }
+    static String getRegexDimenKeywords() {
+        String regex = "";
+        for (int i = 0; i < ARR_DIMEN_KEYWORDS.length; i++) {
+            regex += ARR_DIMEN_KEYWORDS[i];
+            if (i < ARR_DIMEN_KEYWORDS.length - 1) regex += "|";
+        }
+        return regex;
+    }
+    static String getRegexDimen() {
+        String regex = REGEX_NUM + "(";
+        for (int i = 0; i < ARR_DIMEN_UNITS.length; i++) {
+            regex += ARR_DIMEN_UNITS[i];
+            if (i < ARR_DIMEN_UNITS.length - 1) regex += "|";
+        }
+        regex += ")";
+        return regex;
+    }
+    static String getRegexColors() {
+        String regex = "(?i)";  // Match colour names case-insensitively
+        for (int i = 0; i < ARR_COLORS.length; i++) {
+            regex += ARR_COLORS[i];
+            if (i < ARR_COLORS.length - 1) regex += "|";
+        }
+        return regex;
+    }
+
+
 
     // All the ImageView scale types in the order in which we want to display them
     static final ImageView.ScaleType[] SCALE_TYPES = new ImageView.ScaleType[] {

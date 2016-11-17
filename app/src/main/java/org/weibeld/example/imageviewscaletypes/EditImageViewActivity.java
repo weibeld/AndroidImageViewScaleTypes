@@ -14,15 +14,15 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.weibeld.example.imageviewscaletypes.AutoComplAdapter.DimenAutoComplAdapter;
+import org.weibeld.example.imageviewscaletypes.AutoComplAdapter.LayoutDimenAutoComplAdapter;
 import org.weibeld.example.imageviewscaletypes.databinding.ActivityEditImageViewBinding;
-import org.weibeld.example.imageviewscaletypes.AutoComplAdapter.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,29 +37,20 @@ public class EditImageViewActivity extends AppCompatActivity {
 
     private final String LOG_TAG = EditImageViewActivity.class.getSimpleName();
 
+    private final int LAYOUT_DROPDOWN_ITEM = R.layout.item_autocomplete;
+
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
     // Dropdown popup windows that are associated with some of the text fields
     private ListPopupWindow[] mPopupWindows;
 
-    private Map<EditText, StringPredicate> mMapValidators;
+    private Map<EditText, Validator> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
-    private Map<EditText, TextView> mMapLabels;
-    private Map<AutoCompleteTextView, AutoComplAdapter> mMapAutoCompl;
 
     // The default text colours of an EditText in different states (e.g. enabled, disabled)
     private ColorStateList mDefaultColorEditText;
 
-    private String[] dimenVals1 = new String[] {
-            "1dp", "1sp", "1px", "1in", "1mm", "11dp", "11sp", "11px", "11in", "11mm", "wrap_content", "match_parent"
-    };
-    private String[] dimenVals2 = new String[] {
-            "1dp", "1sp", "1px", "1in", "1mm"
-    };
-    private String[] colorVals = new String[] {
-            "green", "grey", "gray", "blue", "brown"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,34 +64,16 @@ public class EditImageViewActivity extends AppCompatActivity {
 
         // Back up the default colours of EditText
         mDefaultColorEditText = mBind.layoutWidthEdit.getTextColors();
-        logTextColors();
+        //logTextColors();
 
         initMappings();
-
         setupAutoComplete();
-
         setupValidations();
-        setupPopupFields();
         setupEmptiableFields(new EditText[] {mBind.backgroundEdit, mBind.maxWidthEdit, mBind.maxHeightEdit});
         setupAdjustViewBoundsField();
-        // TODO: add colour picker
 
         // Load text into fields (call after above setup methods to trigger text change listeners)
         loadValues();
-    }
-
-    private void setupAutoComplete() {
-        
-
-        for (Map.Entry<AutoCompleteTextView, AutoComplAdapter> e : mMapAutoCompl.entrySet()) {
-            e.getKey().setAdapter(e.getValue());
-            e.getKey().addTextChangedListener(new MyTextWatcher() {
-                @Override
-                public void afterTextChanged(Editable s) {
-                    e.getValue().getFilter().filter(s);
-                }
-            });
-        }
     }
 
     // Create mapping between text fields and SharedPreferences entries
@@ -114,34 +87,15 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapPrefKeys.put(mBind.maxHeightEdit, R.string.pref_maxHeight_key);
 
         mMapValidators = new HashMap<>();
-        mMapValidators.put(mBind.layoutWidthEdit, Validator::isValidLayoutDimenEntry);
-        mMapValidators.put(mBind.layoutHeightEdit, Validator::isValidLayoutDimenEntry);
-        mMapValidators.put(mBind.backgroundEdit, Validator::isValidColorEntry);
-        mMapValidators.put(mBind.adjustViewBoundsEdit, Validator::isValidBooleanEntry);
-        mMapValidators.put(mBind.maxWidthEdit, Validator::isValidDimenEntry);
-        mMapValidators.put(mBind.maxHeightEdit, Validator::isValidDimenEntry);
-
-        mMapLabels = new HashMap<>();
-        mMapLabels.put(mBind.layoutWidthEdit, mBind.layoutWidthLabel);
-        mMapLabels.put(mBind.layoutHeightEdit, mBind.layoutHeightLabel);
-        mMapLabels.put(mBind.backgroundEdit, mBind.backgroundLabel);
-        mMapLabels.put(mBind.adjustViewBoundsEdit, mBind.adjustViewBoundsLabel);
-        mMapLabels.put(mBind.maxWidthEdit, mBind.maxWidthLabel);
-        mMapLabels.put(mBind.maxHeightEdit, mBind.maxHeightLabel);
-
-        int itemLayout = R.layout.item_autocomplete;
-        mMapAutoCompl = new HashMap<>();
-        mMapAutoCompl.put(mBind.layoutWidthEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
-        mMapAutoCompl.put(mBind.layoutHeightEdit, new LayoutDimenAutoComplAdapter(this, itemLayout));
-        mMapAutoCompl.put(mBind.backgroundEdit, new ColorAutoComplAdapter(this, itemLayout));
-        mMapAutoCompl.put(mBind.maxWidthEdit, new DimenAutoComplAdapter(this, itemLayout));
-        mMapAutoCompl.put(mBind.maxHeightEdit, new DimenAutoComplAdapter(this, itemLayout));
+        mMapValidators.put(mBind.layoutWidthEdit, new Validator.LayoutDimenValidator());
+        mMapValidators.put(mBind.layoutHeightEdit, new Validator.LayoutDimenValidator());
+        mMapValidators.put(mBind.backgroundEdit, new Validator.ColorValidator());
+        mMapValidators.put(mBind.maxWidthEdit, new Validator.DimenValidator());
+        mMapValidators.put(mBind.maxHeightEdit, new Validator.DimenValidator());
     }
 
-    // Add OnFocusChangeListeners to text fields so that whenever a field loses focus, the content
-    // of the field is validated, and the focus remains on this field.
     private void setupValidations() {
-        for (Map.Entry<EditText, StringPredicate> entry : mMapValidators.entrySet()) {
+        for (Map.Entry<EditText, Validator> entry : mMapValidators.entrySet()) {
             EditText e = entry.getKey();
             e.addTextChangedListener(new MyTextWatcher() {
                 @Override
@@ -165,6 +119,29 @@ public class EditImageViewActivity extends AppCompatActivity {
         }
     }
 
+    private void setupAutoComplete() {
+        // Map between AutoCompleteTextViews and their Adapters
+        Map<AutoCompleteTextView, ArrayAdapter<String>> mapAdapt = new HashMap<>();
+        mapAdapt.put(mBind.layoutWidthEdit, new LayoutDimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
+        mapAdapt.put(mBind.layoutHeightEdit, new LayoutDimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
+        mapAdapt.put(mBind.backgroundEdit, new ArrayAdapter<>(this, LAYOUT_DROPDOWN_ITEM, Data.ARR_COLORS));
+        mapAdapt.put(mBind.maxWidthEdit, new DimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
+        mapAdapt.put(mBind.maxHeightEdit, new DimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
+
+        for (Map.Entry<AutoCompleteTextView, ArrayAdapter<String>> e : mapAdapt.entrySet()) {
+            e.getKey().setAdapter(e.getValue());
+            if (e.getKey() == mBind.backgroundEdit) continue;
+            // Set up custom auto completion for the text fields that use a custom auto completion
+            e.getKey().addTextChangedListener(new MyTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Trigger filtering process on 's', which updates the data of this adapter
+                    e.getValue().getFilter().filter(s);
+                }
+            });
+        }
+    }
+
     private void showInvalidInputDialog(EditText textField) {
         new AlertDialog.Builder(this).
                 setTitle("Invalid Input").
@@ -180,84 +157,34 @@ public class EditImageViewActivity extends AppCompatActivity {
                 create().show();
     }
 
-    // Add ListPopupWindows to the text fields with a dropdown icon
-    private void setupPopupFields() {
-        // Text fields with a dropdown icon
-        final EditText[] popupFields = new EditText[] {
-                //mBind.layoutWidthEdit,
-                //mBind.layoutHeightEdit,
-                mBind.adjustViewBoundsEdit
-        };
-        // Data for each of the ListPopupWindows
-        final String[][] popupData = new String[][] {
-                //Data.ARR_DIMEN_KEYWORDS,
-                //Data.ARR_DIMEN_KEYWORDS,
-                Data.ARR_BOOL
-        };
-        int itemLayout = R.layout.item_autocomplete;
-        // Create and setup ListPopupWindows
-        mPopupWindows = new ListPopupWindow[popupFields.length];
-        for (int i = 0; i < popupFields.length; i++) {
-            mPopupWindows[i] = new ListPopupWindow(this);
-            mPopupWindows[i].setAnchorView(popupFields[i]);
-            mPopupWindows[i].setModal(true);
-            mPopupWindows[i].setVerticalOffset(-10);
-            mPopupWindows[i].setAdapter(new ArrayAdapter<>(
-                    this,
-                    itemLayout,
-                    popupData[i]
-            ));
-            final int I = i;
-            // What to do when an item in the ListPopupWindow is clicked
-            mPopupWindows[i].setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    popupFields[I].setText(popupData[I][position]);
-                    mPopupWindows[I].dismiss();
-                }
-            });
-            // What to do when the dropdown icon is clicked (--> show ListPopupWindow)
-            popupFields[i].setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        int textFieldWidth = popupFields[I].getWidth();
-                        int iconWidth = popupFields[I].getCompoundDrawables()[2].getBounds().width();
-                        if (event.getX() >= textFieldWidth - iconWidth) {
-                            popupFields[I].requestFocus();
-                            mPopupWindows[I].show();
-                        }
-                    }
-                    return false;
-                }
-            });
-        }
-    }
-
     // Add "strikethrough" functionality to the text fields that can be left empty
     // Note: leaving background empty disables elevation
     private void setupEmptiableFields(EditText[] editTexts) {
-        for (EditText e : editTexts) {
-            e.addTextChangedListener(new MyTextWatcher() {
+        Map<AutoCompleteTextView, TextView> mapLabels = new HashMap<>();
+        mapLabels.put(mBind.backgroundEdit, mBind.backgroundLabel);
+        mapLabels.put(mBind.maxWidthEdit, mBind.maxWidthLabel);
+        mapLabels.put(mBind.maxHeightEdit, mBind.maxHeightLabel);
+
+        for (Map.Entry<AutoCompleteTextView, TextView> e : mapLabels.entrySet()) {
+            e.getKey().addTextChangedListener(new MyTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
-                    int mode = mMapLabels.get(e).getPaintFlags();
-                    int flag = Paint.STRIKE_THRU_TEXT_FLAG;
-                    if (e.getText().toString().equals(""))
-                        mode = Util.setFlag(mode, flag);
+                    int mode = e.getValue().getPaintFlags();
+                    if (e.getKey().getText().toString().equals(""))
+                        mode = Util.setFlag(mode, Paint.STRIKE_THRU_TEXT_FLAG);
                     else
-                        mode = Util.unsetFlag(mode, flag);
-                    mMapLabels.get(e).setPaintFlags(mode);
+                        mode = Util.unsetFlag(mode, Paint.STRIKE_THRU_TEXT_FLAG);
+                    e.getValue().setPaintFlags(mode);
                 }
             });
         }
     }
 
-    // If "false" is selected, disable the maxWidth and maxHeight fields
     private void setupAdjustViewBoundsField() {
         // The following two settings don't work when defined in XML (possible Android bug?)
         mBind.adjustViewBoundsEdit.setKeyListener(null);        // Make field non-editable
         mBind.adjustViewBoundsEdit.setSelectAllOnFocus(false);  // Disable selectAllOnFocus
+        // If "true", enabled maxWidth and maxHeight fields, and if "false" disable them
         mBind.adjustViewBoundsEdit.addTextChangedListener(new MyTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -274,6 +201,27 @@ public class EditImageViewActivity extends AppCompatActivity {
                     mBind.maxHeightEdit.setEnabled(false);
                 }
             }
+        });
+        // Create the popup window and define what to do when an item is clicked
+        ListPopupWindow popup = new ListPopupWindow(this);
+        popup.setAnchorView(mBind.adjustViewBoundsEdit);
+        popup.setModal(true);
+        popup.setVerticalOffset(-25);
+        popup.setAdapter(new ArrayAdapter<>(this, LAYOUT_DROPDOWN_ITEM, Data.ARR_BOOL));
+        popup.setOnItemClickListener((parent, view, position, id) -> {
+            mBind.adjustViewBoundsEdit.setText(Data.ARR_BOOL[position]);
+            popup.dismiss();
+        });
+        // Define what to do when the area of the dropdown icon is clicked
+        mBind.adjustViewBoundsEdit.setOnTouchListener((view, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                mBind.adjustViewBoundsEdit.requestFocus();
+                int textFieldWidth = mBind.adjustViewBoundsEdit.getWidth();
+                int iconWidth = mBind.adjustViewBoundsEdit.getCompoundDrawables()[2].getBounds().width();
+                if (event.getX() >= textFieldWidth - iconWidth) popup.show();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -300,7 +248,7 @@ public class EditImageViewActivity extends AppCompatActivity {
     }
 
     private void validateValues() {
-        for (Map.Entry<EditText, StringPredicate> e : mMapValidators.entrySet()) {
+        for (Map.Entry<EditText, Validator> e : mMapValidators.entrySet()) {
             String text = e.getKey().getText().toString();
             if (!e.getValue().test(text)) {
                 Log.v(LOG_TAG, text + " is invalid");
@@ -338,7 +286,7 @@ public class EditImageViewActivity extends AppCompatActivity {
                     show();
         }
         else {
-            Toast.makeText(this, R.string.toast_no_changes, Toast.LENGTH_SHORT).show();
+            showToast(R.string.toast_no_changes);
             finish();
         }
 
@@ -354,7 +302,7 @@ public class EditImageViewActivity extends AppCompatActivity {
     public void onSaveClicked(View view) {
         //validateValues();
         saveValues();
-        Toast.makeText(this, R.string.toast_changes_applied, Toast.LENGTH_SHORT).show();
+        showToast(R.string.toast_changes_applied);
         finish();
     }
 
@@ -364,15 +312,23 @@ public class EditImageViewActivity extends AppCompatActivity {
         loadDefaultValues();
     }
 
+    private void showToast(int msgResId) {
+        Toast.makeText(this, msgResId, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
 
     // Functional interface to be used for lambda expressions. This is only necessary, because
     // currently the Java standard functional interfaces in java.util.function cannot be used for
     // devices with API level < 24 (neither with Jack, nor with Retrolambda). If we would target
     // API level >= 24, we could just use the predefined Predicate<String> interface.
     // http://stackoverflow.com/questions/38607149/is-there-a-way-to-use-java-8-functional-interfaces-on-android-api-below-24
-    interface StringPredicate {
-        boolean test(String s);
-    }
+//    interface StringPredicate {
+//        boolean test(String s);
+//    }
 
     // Provide default empty implementations of beforeTextChanged and onTextChanged of TextWatcher,
     // because we always only use afterTextChanged

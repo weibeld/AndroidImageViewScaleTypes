@@ -1,53 +1,36 @@
 package org.weibeld.example.imageviewscaletypes;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by dw on 13/11/16.
  */
 
-public class Validator {
+public abstract class Validator {
+
+    protected Pattern mPat;
 
     private Validator() {}
 
-    public static boolean isValidDimenEntry(String str) {
-        switch (str) {
-            case "":
-                return true;
-            default:
-                return isValidDimenString(str);
+    public boolean test(String s) {
+        return mPat.matcher(s).matches();
+    }
+
+    public static class DimenValidator extends Validator {
+        public DimenValidator() {
+            mPat = Pattern.compile(Data.getRegexEmpty() + "|" + Data.getRegexDimen());
         }
     }
 
-    public static boolean isValidLayoutDimenEntry(String str) {
-        switch (str) {
-            case Data.WRAP_CONTENT:
-                return true;
-            case Data.MATCH_PARENT:
-                return true;
-            default:
-                return isValidDimenString(str);
+    public static class LayoutDimenValidator extends Validator {
+        public LayoutDimenValidator() {
+            mPat = Pattern.compile(Data.getRegexDimen() + "|" + Data.getRegexDimenKeywords());
         }
     }
 
-    public static boolean isValidBooleanEntry(String str) {
-        return str.equals(Data.TRUE) || str.equals(Data.FALSE);
-    }
-
-    public static boolean isValidColorEntry(String str) {
-        // We use the colour format defined by Color.parseColor plus the empty string for not
-        // specifying a background colour at all.
-        String regex = "^$|(#[a-fA-F0-9]{6})|(#[a-fA-F0-9]{8})|" + Data.REGEX_NAMED_COLORS;
-        return str.matches(regex);
-    }
-
-    // Test if a string has a valid "<value><unit>" format, such as "14.5dp"
-    private static boolean isValidDimenString(String str) {
-        String regex = "^((\\d+)|(\\d+\\.)|(\\.\\d+)|(\\d+\\.\\d+))(";
-        for (int i = 0; i < Data.ARR_DIMEN_UNITS.length; i++) {
-            regex += Data.ARR_DIMEN_UNITS[i];
-            if (i < Data.ARR_DIMEN_UNITS.length - 1) regex += "|";
+    public static class ColorValidator extends Validator {
+        public ColorValidator() {
+            mPat = Pattern.compile(Data.getRegexEmpty() + "|" + Data.getRegexRgb() + "|" + Data.getRegexColors());
         }
-        regex += ")$";
-        return str.matches(regex);
     }
-
 }
