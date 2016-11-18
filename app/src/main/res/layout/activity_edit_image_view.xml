@@ -20,7 +20,7 @@
             android:elevation="@dimen/app_bar_elevation"
             android:title="@string/action_edit_image_view"
             app:navigationIcon="@drawable/ic_close_black_24dp"
-            app:navigationContentDescription="@string/button_discard">
+            app:navigationContentDescription="@string/button_discard_descr">
 
             <Button
                 android:layout_width="wrap_content"

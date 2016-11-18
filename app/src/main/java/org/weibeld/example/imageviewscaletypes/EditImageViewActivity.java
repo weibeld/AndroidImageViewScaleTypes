@@ -6,10 +6,7 @@ import android.content.res.ColorStateList;
 import android.databinding.DataBindingUtil;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
 import android.text.Editable;
@@ -48,12 +45,11 @@ public class EditImageViewActivity extends AppCompatActivity {
     private Map<EditText, Validator> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
 
+    private Map<EditText, Object[]> mValidatable;
+
     // Colours, defined for enabled and disabled state, for valid and invalid input in text fields
     private ColorStateList mInputTextColorNormal;
     private ColorStateList mInputTextColorInvalid;
-
-    // Warn icon for invalid user input
-    //private Drawable mWarnIcon;
 
 
     @Override
@@ -93,42 +89,31 @@ public class EditImageViewActivity extends AppCompatActivity {
         mMapPrefKeys.put(mBind.maxHeightEdit, R.string.pref_maxHeight_key);
 
         mMapValidators = new HashMap<>();
-        mMapValidators.put(mBind.layoutWidthEdit, new Validator.LayoutDimenValidator());
-        mMapValidators.put(mBind.layoutHeightEdit, new Validator.LayoutDimenValidator());
-        mMapValidators.put(mBind.backgroundEdit, new Validator.ColorValidator());
-        mMapValidators.put(mBind.maxWidthEdit, new Validator.DimenValidator());
-        mMapValidators.put(mBind.maxHeightEdit, new Validator.DimenValidator());
+        mMapValidators.put(mBind.layoutWidthEdit, new Validator.LayoutDimenValidator(this));
+        mMapValidators.put(mBind.layoutHeightEdit, new Validator.LayoutDimenValidator(this));
+        mMapValidators.put(mBind.backgroundEdit, new Validator.ColorValidator(this));
+        mMapValidators.put(mBind.maxWidthEdit, new Validator.DimenValidator(this));
+        mMapValidators.put(mBind.maxHeightEdit, new Validator.DimenValidator(this));
     }
 
     private void setupValidations() {
-        for (Map.Entry<EditText, Validator> entry : mMapValidators.entrySet()) {
-            EditText e = entry.getKey();
-            e.addTextChangedListener(new MyTextWatcher() {
+        for (Map.Entry<EditText, Validator> e : mMapValidators.entrySet()) {
+            e.getKey().addTextChangedListener(new MyTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
                     // Remove error indication if one is still set (may occur if reset is clicked)
-                    e.setError(null);
-                    String input = e.getText().toString();
-                    if (entry.getValue().test(input))
-                        e.setTextColor(mInputTextColorNormal);
+                    e.getKey().setError(null);
+                    String input = e.getKey().getText().toString();
+                    if (e.getValue().test(input))
+                        e.getKey().setTextColor(mInputTextColorNormal);
                     else
-                        e.setTextColor(mInputTextColorInvalid);
-                        //textField.setError("Invalid input");
+                        e.getKey().setTextColor(mInputTextColorInvalid);
                 }
             });
-            e.setOnFocusChangeListener((v, hasFocus) -> {
+            e.getKey().setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) return;
-                if (!entry.getValue().test(e.getText().toString())) {
-                    // Set up warn icon for invalid input (make it red and support enabled/disabled state)
-                    Drawable warnIcon = getResources().getDrawable(R.drawable.ic_warning_white_24dp);
-                    warnIcon.setBounds(0, 0, warnIcon.getIntrinsicWidth(), warnIcon.getIntrinsicHeight());
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                        warnIcon.setTintList(getResources().getColorStateList(R.color.invalid_input_color));
-                    else
-                        DrawableCompat.setTintList(warnIcon, getResources().getColorStateList(R.color.invalid_input_color));
-
-                    e.setError("Invalid input", warnIcon);
-                }
+                if (!e.getValue().test(e.getKey().getText().toString()))
+                    e.getKey().setError(e.getValue().getWarnMsg(), e.getValue().getmWarnIcon());
             });
         }
     }
@@ -138,7 +123,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         Map<AutoCompleteTextView, ArrayAdapter<String>> mapAdapt = new HashMap<>();
         mapAdapt.put(mBind.layoutWidthEdit, new LayoutDimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
         mapAdapt.put(mBind.layoutHeightEdit, new LayoutDimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
-        mapAdapt.put(mBind.backgroundEdit, new ArrayAdapter<>(this, LAYOUT_DROPDOWN_ITEM, Data.ARR_COLORS));
+        mapAdapt.put(mBind.backgroundEdit, new ArrayAdapter<>(this, LAYOUT_DROPDOWN_ITEM, Data.getArrColors()));
         mapAdapt.put(mBind.maxWidthEdit, new DimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
         mapAdapt.put(mBind.maxHeightEdit, new DimenAutoComplAdapter(this, LAYOUT_DROPDOWN_ITEM));
 
@@ -299,9 +284,9 @@ public class EditImageViewActivity extends AppCompatActivity {
     private void confirmExit() {
         if (hasChanges()) {
             new AlertDialog.Builder(this).
-                    setMessage(R.string.exit_dialog_msg).
-                    setNegativeButton(R.string.exit_dialog_neg, (dialog, which) -> {}).
-                    setPositiveButton(R.string.exit_dialog_pos, (dialog, which) -> finish()).
+                    setMessage(R.string.dialog_discard_msg).
+                    setNegativeButton(R.string.dialog_discard_neg, (dialog, which) -> {}).
+                    setPositiveButton(R.string.dialog_discard_pos, (dialog, which) -> finish()).
                     create().
                     show();
         }

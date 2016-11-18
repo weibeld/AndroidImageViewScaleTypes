@@ -2,6 +2,8 @@ package org.weibeld.example.imageviewscaletypes;
 
 import android.widget.ImageView;
 
+import java.util.Arrays;
+
 /**
  * Created by dw on 24/10/16.
  */
@@ -16,16 +18,20 @@ class Data {
 
     static final String WRAP_CONTENT = "wrap_content";
     static final String MATCH_PARENT = "match_parent";
-    static final String[] ARR_DIMEN_KEYWORDS = new String[] { WRAP_CONTENT, MATCH_PARENT };
+    static final String[] ARR_DIMEN_KEYWORDS = new String[] { MATCH_PARENT, WRAP_CONTENT };
 
     static final String UNIT_DP = "dp";
     static final String UNIT_SP = "sp";
     static final String UNIT_PX = "px";
     static final String UNIT_IN = "in";
     static final String UNIT_MM = "mm";
-    public static final String[] ARR_DIMEN_UNITS = new String[] {
+    private static final String[] ARR_DIMEN_UNITS = new String[] {
             UNIT_DP, UNIT_SP, UNIT_PX, UNIT_IN, UNIT_MM
     };
+    static String[] getArrDimenUnits() {
+        Arrays.sort(ARR_DIMEN_UNITS);
+        return ARR_DIMEN_UNITS;
+    }
 
     // Color strings accepted by Color.parseColor (except "grey" variants)
     static final String COLOR_RED = "Red";
@@ -48,17 +54,19 @@ class Data {
     static final String COLOR_PURPLE = "Purple";
     static final String COLOR_SILVER = "Silver";
     static final String COLOR_TEAL = "Teal";
-    static final String[] ARR_COLORS = new String[] {
+    private static final String[] ARR_COLORS = new String[] {
             COLOR_RED, COLOR_BLUE, COLOR_GREEN, COLOR_BLACK, COLOR_WHITE, COLOR_GRAY, COLOR_CYAN,
             COLOR_MAGENTA, COLOR_YELLOW, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_AQUA, COLOR_FUCHSIA,
             COLOR_LIME, COLOR_MAROON, COLOR_NAVY, COLOR_OLIVE, COLOR_PURPLE, COLOR_SILVER, COLOR_TEAL
     };
+    static String[] getArrColors() {
+        Arrays.sort(ARR_COLORS);
+        return ARR_COLORS;
+    }
 
     private static final String REGEX_NUM = "^((0\\.\\d+)|([1-9]\\d*\\.\\d+)|(0\\.)|([1-9]\\d*\\.)|(\\.\\d+)|(0)|([1-9]\\d*))";
     private static final String REGEX_RGB = "(#[a-fA-F0-9]{8})|(#[a-fA-F0-9]{6})";
     private static final String REGEX_EMPTY = "^$";
-
-
     static String getRegexNum() {
         return REGEX_NUM;
     }
@@ -69,32 +77,42 @@ class Data {
         return REGEX_EMPTY;
     }
     static String getRegexDimenKeywords() {
-        String regex = "";
-        for (int i = 0; i < ARR_DIMEN_KEYWORDS.length; i++) {
-            regex += ARR_DIMEN_KEYWORDS[i];
-            if (i < ARR_DIMEN_KEYWORDS.length - 1) regex += "|";
-        }
-        return regex;
+        return getArrEltChain(ARR_DIMEN_KEYWORDS, "|");
     }
     static String getRegexDimen() {
-        String regex = REGEX_NUM + "(";
-        for (int i = 0; i < ARR_DIMEN_UNITS.length; i++) {
-            regex += ARR_DIMEN_UNITS[i];
-            if (i < ARR_DIMEN_UNITS.length - 1) regex += "|";
-        }
-        regex += ")";
-        return regex;
+        return REGEX_NUM + "(" + getArrEltChain(getArrDimenUnits(), "|") + ")";
     }
     static String getRegexColors() {
-        String regex = "(?i)";  // Match colour names case-insensitively
-        for (int i = 0; i < ARR_COLORS.length; i++) {
-            regex += ARR_COLORS[i];
-            if (i < ARR_COLORS.length - 1) regex += "|";
-        }
-        return regex;
+        return "(?i)" + getArrEltChain(getArrColors(), "|");  // (?i) = case-insensitive matching
     }
 
 
+    static String getWarnMsgLineDimen() {
+        return "\n" + bullet + "<N> " + getArrEltChain(getArrDimenUnits(), " | ");
+    }
+    static String getWarnMsgLineDimenKeywords() {
+        return "\n" + bullet + getArrEltChain(ARR_DIMEN_KEYWORDS, " | ");
+    }
+    static String getWarnMsgLineEmpty() {
+        return "\n" + bullet + "<empty>";
+    }
+    static String getWarnMsgLineColors() {
+        return "\n" + bullet + getArrEltChain(getArrColors(), " | ");
+    }
+    static String getWarnMsgLineRgb() {
+        return "\n" + bullet + "#rrggbb | #aarrggbb";
+    }
+    private static String bullet = "   \u2022 ";
+
+
+    private static String getArrEltChain(String[] a, String sep) {
+        String s = "";
+        for (int i = 0; i < a.length; i++) {
+            s += a[i];
+            if (i < a.length - 1) s += sep;
+        }
+        return s;
+    }
 
     // All the ImageView scale types in the order in which we want to display them
     static final ImageView.ScaleType[] SCALE_TYPES = new ImageView.ScaleType[] {

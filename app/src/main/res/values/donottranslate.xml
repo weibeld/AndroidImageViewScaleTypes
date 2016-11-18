@@ -27,7 +27,7 @@
     <!-- Edit ImageView Dialog -->
     <string name="layout_width_label">android:layout_width</string>
     <string name="layout_height_label">android:layout_height</string>
-    <string name="background_label">android:background (#[aa]rrggbb)</string>
+    <string name="background_label">android:background</string>
     <string name="adjustViewBounds_label">android:adjustViewBounds</string>
     <string name="maxWidth_label">android:maxWidth</string>
     <string name="maxHeight_label">android:maxHeight</string>

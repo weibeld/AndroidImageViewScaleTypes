@@ -76,7 +76,7 @@ public abstract class AutoComplFilter extends Filter {
             mPatNum = Pattern.compile(Data.getRegexNum());
             // Create <value><unit> pattern for each unit and associate with "replace" unit string
             mMapPat = new HashMap<>();
-            for (String s : Data.ARR_DIMEN_UNITS) {
+            for (String s : Data.getArrDimenUnits()) {
                 mMapPat.put(Pattern.compile(Data.getRegexNum() + s), s);
             }
         }
