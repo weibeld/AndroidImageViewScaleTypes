@@ -13,7 +13,7 @@
     <color name="colorAccent">#F50057</color>            <!-- Pink A400 -->
     <color name="colorAccentLight">#FF80AB</color>       <!-- Pink A100 -->
 
-    <!-- Colours for invalid user input text in text fields -->
+    <!-- Colours for invalid input text and warn icons in text fields -->
     <!-- Alpha (see https://material.google.com/style/color.html#color-text-background-colors): -->
     <!--   Primary text:   DE = 222/255 = 0.8706 (disabled 3A = 58/255 = 0.2275) -->
     <!--   Secondary text: 8A = 138/255 = 0.5412 (disabled 24 = 26/255 = 0.1412) -->

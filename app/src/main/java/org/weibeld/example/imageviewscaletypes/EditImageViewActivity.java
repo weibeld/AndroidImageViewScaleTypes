@@ -6,7 +6,10 @@ import android.content.res.ColorStateList;
 import android.databinding.DataBindingUtil;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListPopupWindow;
 import android.text.Editable;
@@ -45,9 +48,12 @@ public class EditImageViewActivity extends AppCompatActivity {
     private Map<EditText, Validator> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
 
-    // ColorStateList (used for enabled and disabled states) for valid and invalid text in EditText
+    // Colours, defined for enabled and disabled state, for valid and invalid input in text fields
     private ColorStateList mInputTextColorNormal;
     private ColorStateList mInputTextColorInvalid;
+
+    // Warn icon for invalid user input
+    private Drawable mWarnIcon;
 
 
     @Override
@@ -60,10 +66,17 @@ public class EditImageViewActivity extends AppCompatActivity {
         setSupportActionBar(mBind.toolbar);
         mBind.toolbar.setNavigationOnClickListener(v -> confirmExit());
 
-        // Back up the default colours of EditText
+        // Back up the default ColorStateList of EditText
         mInputTextColorNormal = mBind.layoutWidthEdit.getTextColors();
-        mInputTextColorInvalid = getResources().getColorStateList(R.color.invalid_text_color);
-        //logTextColors();
+        mInputTextColorInvalid = getResources().getColorStateList(R.color.invalid_input_color);
+
+        // Set up warn icon for invalid input (make it red and support enabled/disabled state)
+        mWarnIcon = getResources().getDrawable(R.drawable.ic_warning_white_24dp);
+        mWarnIcon.setBounds(0, 0, mWarnIcon.getIntrinsicWidth(), mWarnIcon.getIntrinsicHeight());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            mWarnIcon.setTintList(getResources().getColorStateList(R.color.invalid_input_color));
+        else
+            DrawableCompat.setTintList(mWarnIcon, getResources().getColorStateList(R.color.invalid_input_color));
 
         initMappings();
         setupAutoComplete();
@@ -112,8 +125,7 @@ public class EditImageViewActivity extends AppCompatActivity {
             e.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) return;
                 if (!entry.getValue().test(e.getText().toString()))
-                    e.setError("Invalid input");
-                    //showInvalidInputDialog(e);
+                    e.setError("Invalid input", mWarnIcon);
             });
         }
     }
@@ -188,15 +200,21 @@ public class EditImageViewActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (mBind.adjustViewBoundsEdit.getText().toString().equals(Data.TRUE)) {
+                    // Enable labels
                     mBind.maxWidthLabel.setEnabled(true);
-                    mBind.maxWidthEdit.setEnabled(true);
                     mBind.maxHeightLabel.setEnabled(true);
+
+                    // Enable text fields
+                    mBind.maxWidthEdit.setEnabled(true);
                     mBind.maxHeightEdit.setEnabled(true);
                 }
                 else {
+                    // Disable labels
                     mBind.maxWidthLabel.setEnabled(false);
-                    mBind.maxWidthEdit.setEnabled(false);
                     mBind.maxHeightLabel.setEnabled(false);
+
+                    // Disable text fields
+                    mBind.maxWidthEdit.setEnabled(false);
                     mBind.maxHeightEdit.setEnabled(false);
                 }
             }
