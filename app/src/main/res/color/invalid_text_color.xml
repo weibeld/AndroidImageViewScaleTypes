@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ColorStateList for invalid text in text fields -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:state_enabled="true"
+        android:color="@color/colorInvalidInputEnabled" />
+
+    <item
+        android:state_enabled="false"
+        android:color="@color/colorInvalidInputDisabled" />
+
+</selector>

@@ -42,14 +42,12 @@ public class EditImageViewActivity extends AppCompatActivity {
     // Binding to the named XML layout UI elements (Data Binding Library)
     ActivityEditImageViewBinding mBind;
 
-    // Dropdown popup windows that are associated with some of the text fields
-    private ListPopupWindow[] mPopupWindows;
-
     private Map<EditText, Validator> mMapValidators;
     private Map<EditText, Integer> mMapPrefKeys;
 
-    // The default text colours of an EditText in different states (e.g. enabled, disabled)
-    private ColorStateList mDefaultColorEditText;
+    // ColorStateList (used for enabled and disabled states) for valid and invalid text in EditText
+    private ColorStateList mInputTextColorNormal;
+    private ColorStateList mInputTextColorInvalid;
 
 
     @Override
@@ -63,7 +61,8 @@ public class EditImageViewActivity extends AppCompatActivity {
         mBind.toolbar.setNavigationOnClickListener(v -> confirmExit());
 
         // Back up the default colours of EditText
-        mDefaultColorEditText = mBind.layoutWidthEdit.getTextColors();
+        mInputTextColorNormal = mBind.layoutWidthEdit.getTextColors();
+        mInputTextColorInvalid = getResources().getColorStateList(R.color.invalid_text_color);
         //logTextColors();
 
         initMappings();
@@ -104,9 +103,9 @@ public class EditImageViewActivity extends AppCompatActivity {
                     e.setError(null);
                     String input = e.getText().toString();
                     if (entry.getValue().test(input))
-                        e.setTextColor(mDefaultColorEditText);
+                        e.setTextColor(mInputTextColorNormal);
                     else
-                        e.setTextColor(getColor(R.color.colorInvalidInput));
+                        e.setTextColor(mInputTextColorInvalid);
                         //textField.setError("Invalid input");
                 }
             });
@@ -370,7 +369,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         // EditText enabled: 0xDE000000: black, opacity 222/255 (87.06%) -> primary text
         // EditText disabled: 0x3A000000: black, opacity 58/255 (22.75%) -> 26.1% of primary text
         // TextView enabled: 0x8A000000: black, opacity 138/255 (54.12%) -> secondary text
-        // TextView disabled: 0x24000000: black, opacity 36/255 (14.12%) -> 26.1% of primary text
+        // TextView disabled: 0x24000000: black, opacity 36/255 (14.12%) -> 26.1% of secondary text
     }
 
 }

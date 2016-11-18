@@ -13,7 +13,11 @@
     <color name="colorAccent">#F50057</color>            <!-- Pink A400 -->
     <color name="colorAccentLight">#FF80AB</color>       <!-- Pink A100 -->
 
-    <!-- Colour for invalid text in EditText -->
-    <!-- Opacity 54%: https://material.google.com/style/color.html#color-text-background-colors -->
-    <color name="colorInvalidInput">#8AFF0000</color>
+    <!-- Colours for invalid user input text in text fields -->
+    <!-- Alpha (see https://material.google.com/style/color.html#color-text-background-colors): -->
+    <!--   Primary text:   DE = 222/255 = 0.8706 (disabled 3A = 58/255 = 0.2275) -->
+    <!--   Secondary text: 8A = 138/255 = 0.5412 (disabled 24 = 26/255 = 0.1412) -->
+    <!-- In disabled state, alpha is 0.261 of alpha in enabled state (experimental finding) -->
+    <color name="colorInvalidInputEnabled">#DEFF0000</color>
+    <color name="colorInvalidInputDisabled">#3AFF0000</color>
 </resources>
