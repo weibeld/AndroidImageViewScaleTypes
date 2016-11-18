@@ -53,7 +53,7 @@ public class EditImageViewActivity extends AppCompatActivity {
     private ColorStateList mInputTextColorInvalid;
 
     // Warn icon for invalid user input
-    private Drawable mWarnIcon;
+    //private Drawable mWarnIcon;
 
 
     @Override
@@ -70,13 +70,7 @@ public class EditImageViewActivity extends AppCompatActivity {
         mInputTextColorNormal = mBind.layoutWidthEdit.getTextColors();
         mInputTextColorInvalid = getResources().getColorStateList(R.color.invalid_input_color);
 
-        // Set up warn icon for invalid input (make it red and support enabled/disabled state)
-        mWarnIcon = getResources().getDrawable(R.drawable.ic_warning_white_24dp);
-        mWarnIcon.setBounds(0, 0, mWarnIcon.getIntrinsicWidth(), mWarnIcon.getIntrinsicHeight());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            mWarnIcon.setTintList(getResources().getColorStateList(R.color.invalid_input_color));
-        else
-            DrawableCompat.setTintList(mWarnIcon, getResources().getColorStateList(R.color.invalid_input_color));
+
 
         initMappings();
         setupAutoComplete();
@@ -124,8 +118,17 @@ public class EditImageViewActivity extends AppCompatActivity {
             });
             e.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) return;
-                if (!entry.getValue().test(e.getText().toString()))
-                    e.setError("Invalid input", mWarnIcon);
+                if (!entry.getValue().test(e.getText().toString())) {
+                    // Set up warn icon for invalid input (make it red and support enabled/disabled state)
+                    Drawable warnIcon = getResources().getDrawable(R.drawable.ic_warning_white_24dp);
+                    warnIcon.setBounds(0, 0, warnIcon.getIntrinsicWidth(), warnIcon.getIntrinsicHeight());
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                        warnIcon.setTintList(getResources().getColorStateList(R.color.invalid_input_color));
+                    else
+                        DrawableCompat.setTintList(warnIcon, getResources().getColorStateList(R.color.invalid_input_color));
+
+                    e.setError("Invalid input", warnIcon);
+                }
             });
         }
     }
