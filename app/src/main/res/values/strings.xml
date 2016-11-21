@@ -22,6 +22,7 @@
     <string name="button_reset">Reset Defaults</string>
     <string name="toast_no_changes">No changes applied</string>
     <string name="toast_changes_applied">Settings saved and applied</string>
+    <string name="toast_reset_defaults">Restored default values</string>
     <string name="dialog_discard_msg">Discard changes?</string>
     <string name="dialog_discard_pos">Discard</string>
     <string name="dialog_discard_neg">@string/cancel</string>
