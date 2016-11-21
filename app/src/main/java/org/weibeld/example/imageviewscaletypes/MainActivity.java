@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
 
             case R.id.action_choose_image:
-                launchImagePicker();
+                startImageChooserActivity();
                 return true;
 
             case R.id.action_edit_image_view:
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchImagePicker() {
+    private void startImageChooserActivity() {
         // Launch intent to pick an image from a ContentProvider or DocumentsProvider
         Intent intent = new Intent();
         // For ACTION_OPEN_DOCUMENT vs. ACTION_GET_CONTENT see:
@@ -99,6 +99,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.v(LOG_TAG, "onActivityResult: saved " + uri.toString() + " in SharedPreferences");
             }
         }
+//        else if (requestCode == Data.EDIT_IMAGE_VIEW_REQUEST_CODE) {
+//            Fragment fragment = new PageFragment();
+//            Bundle arg = new Bundle();
+//            arg.putInt(Data.ARG_POSITION, mBind.viewpager.getCurrentItem());
+//            fragment.setArguments(arg);
+//            Fragment frag = ((FragmentPagerAdapter) mBind.viewpager.getAdapter()).getItem(mBind.viewpager.getCurrentItem());
+//            //getFragmentManager().beginTransaction().replace(R.id.viewpager, fragment).commit();
+//            getFragmentManager().beginTransaction().detach(frag).attach(frag).commitAllowingStateLoss();
+//        }
     }
 
     // Helper function for settling URI permission issues on both pre and post KitKat devices. The
@@ -142,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // The Fragment we return is a PageFragment that is provided with its position
             // in the collection of pages, so that it knows which scale type it represents.
-            Fragment fragment = new PageFragment();
+            Fragment fragment = new LauncherFragment();
             Bundle arg = new Bundle();
             arg.putInt(Data.ARG_POSITION, position);
             fragment.setArguments(arg);

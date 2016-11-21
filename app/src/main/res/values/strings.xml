@@ -3,7 +3,6 @@
 
     <!-- Generic strings -->
     <string name="ok">OK</string>
-    <string name="error">Error</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
 
@@ -26,8 +25,8 @@
     <string name="dialog_discard_msg">Discard changes?</string>
     <string name="dialog_discard_pos">Discard</string>
     <string name="dialog_discard_neg">@string/cancel</string>
-    <string name="dialog_error_title">@string/error</string>
-    <string name="dialog_error_msg">You are trying to save invalid inputs. Please correct them and try to save again.</string>
+    <string name="dialog_error_title">Wait a second</string>
+    <string name="dialog_error_msg">You are trying to save invalid inputs. Please correct them and then try to save again.</string>
     <string name="dialog_error_pos">@string/ok</string>
 
     <!-- EditImageViewActivity invalid input warning messages -->

@@ -127,10 +127,11 @@ class Data {
     };
 
     // Page position argument passed to the PageFragment
-    static final String ARG_POSITION = "position";
+    static final String ARG_POSITION = "ViewPagerPosition";
 
     // Code for the choose image intent
     static final int CHOOSE_IMAGE_REQUEST_CODE = 1;
+    static final int EDIT_IMAGE_VIEW_REQUEST_CODE = 2;
 
     static final String DEACTIVATED_MARKER = "DEACTIVATED";
 }

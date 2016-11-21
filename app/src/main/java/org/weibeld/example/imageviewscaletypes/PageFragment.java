@@ -36,18 +36,19 @@ import static org.weibeld.example.imageviewscaletypes.Data.DEACTIVATED_MARKER;
  * Created by dw on 24/10/16.
  */
 
+// Lifetime of Fragment when swiped in ViewPager:
+// onCreateView -> onActivity Created -> onStart -> onResume -> onPause -> onStop -> onDestroyView
+// Lifetime of Fragment when starting another Activity and returning:
+// onStart -> onResume -> onPause -> onStop
 public class PageFragment extends Fragment {
 
     private final String LOG_TAG = PageFragment.class.getSimpleName();
-
-    private final int NA = Integer.MIN_VALUE;
 
     // Binding to layout elements through Data Binding Library
     private FragmentPageBinding mBind;
 
     private View mRootView;
     private ImageView.ScaleType mScaleType;
-
 
     // on Attach --> onCreate
     @Override
@@ -99,10 +100,11 @@ public class PageFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "onResume of " + mScaleType.name());
-        // TODO: improve loading of large images
-        loadImage();
+
         // TODO: recreate the two or three stopped Fragments after return from EditImageViewActivity
         setupImageView();
+        // TODO: improve loading of large images
+        loadImage();
     }
 
     // onResume --> onPause --> onStop
@@ -120,6 +122,12 @@ public class PageFragment extends Fragment {
         Log.v(LOG_TAG, "onStop of " + mScaleType.name());
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.v(LOG_TAG, "onDestroyView of " + mScaleType.name());
+    }
+
     // onDestroyView --> onDestroy --> onDetach
     @Override
     public void onDestroy() {
@@ -127,9 +135,19 @@ public class PageFragment extends Fragment {
         Log.v(LOG_TAG, "onDestroy of " + mScaleType.name());
     }
 
+    @Override
+    public void onDetach() {
+        Log.v(LOG_TAG, "onDetach of " + mScaleType.name());
+        super.onDetach();
+    }
+
     // Set ImageView properties according to values in SharedPreferences. Note: when returning from
     // EditImageViewProperties, the callbacks called of this Fragment are onStart and onResume.
     private void setupImageView() {
+        // Set adjustViewBounds (required boolean field)
+        String s = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
+        mBind.imageView.setAdjustViewBounds(s.equals(Data.TRUE));
+
         // Set layout_width and layout_height (required fields)
         String w = Pref.get(getActivity(), R.string.pref_layout_width_key);
         mBind.imageView.getLayoutParams().width = dimenStrToInt(w);
@@ -141,9 +159,7 @@ public class PageFragment extends Fragment {
         if (!color.equals(""))
             mBind.imageView.setBackgroundColor(Color.parseColor(color));
 
-        // Set adjustViewBounds (required boolean field)
-        String s = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
-        mBind.imageView.setAdjustViewBounds(s.equals(Data.TRUE));
+
 
         // Set maxWidth and maxHeight (optional fields that may be deactivated)
         String maxW = Pref.get(getActivity(), R.string.pref_maxWidth_key);
