@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.weibeld.example.imageviewscaletypes.Data.DEACTIVATED_MARKER;
+
 /**
  * Created by dw on 24/10/16.
  */
@@ -128,58 +130,40 @@ public class PageFragment extends Fragment {
     // Set ImageView properties according to values in SharedPreferences. Note: when returning from
     // EditImageViewProperties, the callbacks called of this Fragment are onStart and onResume.
     private void setupImageView() {
-        String[] stringVals;
-        int[] intVals;
-        String stringVal;
-        int intVal;
+        // Set layout_width and layout_height (required fields)
+        String w = Pref.get(getActivity(), R.string.pref_layout_width_key);
+        mBind.imageView.getLayoutParams().width = dimenStrToInt(w);
+        String h = Pref.get(getActivity(), R.string.pref_layout_height_key);
+        mBind.imageView.getLayoutParams().height = dimenStrToInt(h);
 
-        // Set dimension attributes (layout_width, layout_height, maxWidth, maxHeight)
-        // Note: maxWidth and maxHeight do only have an effect if adjustViewBounds is false
-        stringVals = new String[] {
-                Pref.get(getActivity(), R.string.pref_layout_width_key),
-                Pref.get(getActivity(), R.string.pref_layout_height_key),
-                Pref.get(getActivity(), R.string.pref_maxWidth_key),
-                Pref.get(getActivity(), R.string.pref_maxHeight_key)
-        };
-        intVals = translateDimensions(stringVals);
-        mBind.imageView.getLayoutParams().width = intVals[0];
-        mBind.imageView.getLayoutParams().height = intVals[1];
-        if (intVals[2] != NA)
-            mBind.imageView.setMaxWidth(intVals[2]);
-        if (intVals[3] != NA)
-            mBind.imageView.setMaxHeight(intVals[3]);
+        // Set background colour (optional field)
+        String color = Pref.get(getActivity(), R.string.pref_background_key);
+        if (!color.equals(""))
+            mBind.imageView.setBackgroundColor(Color.parseColor(color));
 
-        // Set adjustViewBounds
-        stringVal = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
-        mBind.imageView.setAdjustViewBounds(stringVal.equals(Data.TRUE));
+        // Set adjustViewBounds (required boolean field)
+        String s = Pref.get(getActivity(), R.string.pref_adjustViewBounds_key);
+        mBind.imageView.setAdjustViewBounds(s.equals(Data.TRUE));
 
-        // Set background colour (note: setting no background disables the elevation)
-        stringVal = Pref.get(getActivity(), R.string.pref_background_key);
-        if (!stringVal.equals("")) {
-            intVal = Color.parseColor(stringVal);
-            mBind.imageView.setBackgroundColor(intVal);
-        }
+        // Set maxWidth and maxHeight (optional fields that may be deactivated)
+        String maxW = Pref.get(getActivity(), R.string.pref_maxWidth_key);
+        if (!maxW.equals("") && !maxW.contains(DEACTIVATED_MARKER))
+            mBind.imageView.setMaxWidth(dimenStrToInt(maxW));
+        String maxH = Pref.get(getActivity(), R.string.pref_maxHeight_key);
+        if (!maxH.equals("") && !maxH.contains(Data.DEACTIVATED_MARKER))
+            mBind.imageView.setMaxHeight(dimenStrToInt(maxH));
     }
 
-    private int[] translateDimensions(String[] stringVals) {
-        int[] intVals = new int[stringVals.length];
-        for (int i = 0; i < stringVals.length; i++) {
-            switch (stringVals[i]) {
-                case Data.WRAP_CONTENT:
-                    intVals[i] = ViewGroup.LayoutParams.WRAP_CONTENT;
-                    break;
-                case Data.MATCH_PARENT:
-                    intVals[i] = ViewGroup.LayoutParams.MATCH_PARENT;
-                    break;
-                case "":
-                    intVals[i] = NA;
-                    break;
-                default:
-                    Util.Dimension dim = Util.parseDimension(stringVals[i]);
-                    intVals[i] = (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
-            }
+    private int dimenStrToInt(String s) {
+        switch (s) {
+            case Data.WRAP_CONTENT:
+                return ViewGroup.LayoutParams.WRAP_CONTENT;
+            case Data.MATCH_PARENT:
+                return ViewGroup.LayoutParams.MATCH_PARENT;
+            default:
+                Util.Dimension dim = Util.parseDimension(s);
+                return (int) TypedValue.applyDimension(dim.unit, dim.value, getResources().getDisplayMetrics());
         }
-        return intVals;
     }
 
     private void loadImage() {

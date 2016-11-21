@@ -131,4 +131,6 @@ class Data {
 
     // Code for the choose image intent
     static final int CHOOSE_IMAGE_REQUEST_CODE = 1;
+
+    static final String DEACTIVATED_MARKER = "DEACTIVATED";
 }

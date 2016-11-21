@@ -20,6 +20,17 @@ public class ExampleUnitTest {
         assertEquals(4, 2 + 2);
     }
 
+    @Test
+    public void testStringReplace() {
+        String marker = "foobar";
+        String s1 = "foobar120.4px";
+        String s2 = "120.4px";
+        String s3 = "";
+        System.out.println(s1.replace(marker, ""));
+        System.out.println(s2.replace(marker, ""));
+        System.out.println(s3.replace(marker, ""));
+    }
+
     // Test Util.parseDimensionValue
     @Test
     public void parseDimensionValue_test() throws Exception {

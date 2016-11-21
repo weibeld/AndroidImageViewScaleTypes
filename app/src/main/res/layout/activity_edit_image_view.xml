@@ -21,7 +21,6 @@
             android:title="@string/action_edit_image_view"
             app:navigationIcon="@drawable/ic_close_black_24dp"
             app:navigationContentDescription="@string/button_discard_descr">
-
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -35,7 +34,6 @@
                 android:text="@string/button_save"
                 android:onClick="onSaveClicked"
                 />
-
         </android.support.v7.widget.Toolbar>
 
         <ScrollView

@@ -37,7 +37,7 @@ public abstract class Validator {
         return mWarnMsg;
     }
 
-    public Drawable getmWarnIcon() {
+    public Drawable getWarnIcon() {
         return mWarnIcon;
     }
 

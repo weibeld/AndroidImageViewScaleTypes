@@ -1,6 +1,12 @@
 <resources>
     <!-- TRANSLATABLE STRINGS -->
 
+    <!-- Generic strings -->
+    <string name="ok">OK</string>
+    <string name="error">Error</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+
     <!-- Image size info text -->
     <string name="info_image_view">ImageView:</string>
     <string name="info_original_image">Original image:</string>
@@ -12,13 +18,16 @@
 
     <!-- EditImageViewActivity buttons and dialogs -->
     <string name="button_discard_descr">Discard changes</string>
-    <string name="button_save">Save</string>
+    <string name="button_save">@string/save</string>
     <string name="button_reset">Reset Defaults</string>
     <string name="toast_no_changes">No changes applied</string>
     <string name="toast_changes_applied">Settings saved and applied</string>
     <string name="dialog_discard_msg">Discard changes?</string>
     <string name="dialog_discard_pos">Discard</string>
-    <string name="dialog_discard_neg">Cancel</string>
+    <string name="dialog_discard_neg">@string/cancel</string>
+    <string name="dialog_error_title">@string/error</string>
+    <string name="dialog_error_msg">You are trying to save invalid inputs. Please correct them and try to save again.</string>
+    <string name="dialog_error_pos">@string/ok</string>
 
     <!-- EditImageViewActivity invalid input warning messages -->
     <string name="warn_invalid_input">Valid inputs are:</string>
