@@ -34,16 +34,7 @@
             android:layout_height="match_parent"
             android:gravity="center_horizontal"
             android:background="@color/colorPrimaryVeryLight"
-            android:text="ImageView size:\nOriginal image size\nScaled image size:\nImageView size:\nOriginal image size\nScaled image size:"
             />
-
-        <!--&lt;!&ndash;<Button&ndash;&gt;-->
-        <!--&lt;!&ndash;android:id="@+id/button"&ndash;&gt;-->
-        <!--&lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;-->
-        <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
-        <!--&lt;!&ndash;android:layout_gravity="center"&ndash;&gt;-->
-        <!--&lt;!&ndash;android:text="Measure"&ndash;&gt;-->
-        <!--&lt;!&ndash;/>&ndash;&gt;-->
 
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 

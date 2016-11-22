@@ -8,17 +8,18 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Size;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -65,6 +66,7 @@ public class PageFragment extends Fragment {
         Log.v(LOG_TAG, "onCreate of " + mScaleType.name());
     }
 
+    // TODO: achieve measurement of ImageView and image without a refresh button
     // onCreate --> onCreateView --> onActivityCreated
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -72,12 +74,35 @@ public class PageFragment extends Fragment {
         mRootView = inflater.inflate(R.layout.fragment_page, container, false);
         mBind = FragmentPageBinding.bind(mRootView);
         mBind.imageView.setScaleType(mScaleType);
-        // Temporary button for querying sizes of ImageView and image
-//        mBind.button.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//                setImageInfoText();
-//            }
-//        });
+
+        Log.v(LOG_TAG, "onCreateView " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
+
+        ViewTreeObserver o = mBind.imageView.getViewTreeObserver();
+        // TODO: remove the listener as soon as all sizes are correctly returned for the first time
+        o.addOnGlobalLayoutListener(() -> {
+            // It may happen that the Fragment is not attached to its Activity, in which case
+            // accessing the resources (R) results in an exception.
+            if (isAdded()) {
+                Size vSize = getImageViewSize(mBind.imageView);
+                Size iSizeOrig = getOriginalImageSize(mBind.imageView);
+                Size iSizeDrawn = getDrawnImageSize(mBind.imageView);
+                String str = getString(R.string.info_image_view) + " " + vSize + "\n" +
+                        getString(R.string.info_displayed_image) + " " + iSizeDrawn + "\n" +
+                        getString(R.string.info_original_image) + " " + iSizeOrig;
+                mBind.imageInfo.setText(str);
+                Log.v(LOG_TAG, "onGlobalLayoutListener " + mScaleType.name() + ":" +
+                        "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                        "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                        "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
+            }
+        });
+
+
+
+
         return mRootView;
     }
 
@@ -86,6 +111,10 @@ public class PageFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.v(LOG_TAG, "onActivityCreated of " + mScaleType.name());
+        Log.v(LOG_TAG, "onActivityCreated " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onViewStateRestored --> onStart --> onResume
@@ -93,6 +122,10 @@ public class PageFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.v(LOG_TAG, "onStart of " + mScaleType.name());
+        Log.v(LOG_TAG, "onStart " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onStart --> onResume --> onPause
@@ -100,10 +133,12 @@ public class PageFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "onResume of " + mScaleType.name());
-
-        // TODO: recreate the two or three stopped Fragments after return from EditImageViewActivity
+        Log.v(LOG_TAG, "onResume " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
         setupImageView();
-        // TODO: improve loading of large images
+        // TODO: improve loading of large images (probably use Glide instead of Picasso)
         loadImage();
     }
 
@@ -112,7 +147,10 @@ public class PageFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Log.v(LOG_TAG, "onPause of " + mScaleType.name());
-
+        Log.v(LOG_TAG, "onPause " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onPause --> onStop --> onDestroyView
@@ -120,12 +158,20 @@ public class PageFragment extends Fragment {
     public void onStop() {
         super.onStop();
         Log.v(LOG_TAG, "onStop of " + mScaleType.name());
+        Log.v(LOG_TAG, "onStop " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         Log.v(LOG_TAG, "onDestroyView of " + mScaleType.name());
+        Log.v(LOG_TAG, "onDestroyView " + mScaleType.name() + ":" +
+                "\nImageView size: " + getImageViewSize(mBind.imageView) +
+                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
+                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onDestroyView --> onDestroy --> onDetach
@@ -137,8 +183,8 @@ public class PageFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        Log.v(LOG_TAG, "onDetach of " + mScaleType.name());
         super.onDetach();
+        Log.v(LOG_TAG, "onDetach of " + mScaleType.name());
     }
 
     // Set ImageView properties according to values in SharedPreferences. Note: when returning from
@@ -257,57 +303,40 @@ public class PageFragment extends Fragment {
                 .into(mBind.imageView);
     }
 
-    private void setImageInfoText() {
-
-        /* Width and height (as drawn on screen) of the ImageView */
-        int widthView = mBind.imageView.getWidth();
-        int heightView = mBind.imageView.getHeight();
-
-        /* ORIGINAL width and height of the image (without any scaling) */
-        int widthImageOrig = mBind.imageView.getDrawable().getIntrinsicWidth();
-        int heightImageOrig = mBind.imageView.getDrawable().getIntrinsicHeight();
-
-        /* Width and height of the image after scaling (done by the ImageView) */
-        int widthImageScaled;
-        int heightImageScaled;
-        Matrix matrix = mBind.imageView.getImageMatrix();
-        if (mScaleType != ImageView.ScaleType.FIT_XY) {
-            // For all scale types except FIT_XY, the scale that the ImageView applies to width
-            // and height of the original image is declared as MSCALE_X and MSCALE_Y in the
-            // ImageView's transformation matrix.
-            float[] matrixVals = new float[9];
-            matrix.getValues(matrixVals);
-            float scaleX = matrixVals[Matrix.MSCALE_X];
-            float scaleY = matrixVals[Matrix.MSCALE_Y];
-            // Multiplying the original size with the scale yields the scaled (displayed) size
-            widthImageScaled = Math.round(widthImageOrig * scaleX);
-            heightImageScaled = Math.round(heightImageOrig * scaleY);
-        }
-        else {
-            // For the FIT_XY scale type, the transformation matrix is not used, but the bounds
-            // of the Drawable (image) are directly set to equal the bounds of the ImageView.
-            Drawable drawable = mBind.imageView.getDrawable();
-            Rect rect = drawable.getBounds();
-            widthImageScaled = rect.width();
-            heightImageScaled = rect.height();
-            //widthImageScaled = widthView;
-            //heightImageScaled = heightView;
-        }
-
-        Log.v(LOG_TAG, "Matrix: " + matrix + " of " + mScaleType.name());
-
-        String str =
-                getString(R.string.info_image_view) + " " + formatSize(widthView, heightView) + "\n"
-                + getString(R.string.info_original_image) + " " + formatSize(widthImageOrig, heightImageOrig) + "\n"
-                + getString(R.string.info_displayed_image) + " " + formatSize(widthImageScaled, heightImageScaled) + "\n"
-                + "Matrix:" + "\n"
-                + formatMatrix(matrix);
-
-        mBind.imageInfo.setText(str);
+    // Width and height (as drawn on screen) of ImageView
+    private Size getImageViewSize(ImageView v) {
+        return new Size(v.getWidth(), v.getHeight());
     }
 
-    private String formatSize(int width, int height) {
-        return width + "x" + height + " px";
+    // Original width and height of the image inside the ImageView
+    private Size getOriginalImageSize(ImageView v) {
+        Drawable d = v.getDrawable();
+        // getDrawable returns null if no Drawable has (yet) been assigned to the ImageView
+        if (d == null) return new Size(0, 0);
+        // getIntrinsicX returns -1 if the Drawable has no width/height (such as a solid color)
+        else return new Size(d.getIntrinsicWidth(), d.getIntrinsicHeight());
+    }
+
+    // Width and height of the image inside the ImageView as drawn on screen
+    private Size getDrawnImageSize(ImageView v) {
+        Drawable d = v.getDrawable();
+        // getDrawable returns null if no Drawable has (yet) been assigned to the ImageView
+        if (d == null)
+            return new Size(0, 0);
+        // For FIT_XY, the size of the image is directly set to  the size of the ImageView
+        if (mScaleType == ImageView.ScaleType.FIT_XY) {
+            return getImageViewSize(v);
+        }
+        // For the other scale types, the scale factors defined in the image matrix are used
+        else {
+            float[] matrixVals = new float[9];
+            // If the ImageView has no matrix set, then getImageMatrix returns the identity matrix
+            v.getImageMatrix().getValues(matrixVals);
+            float scaleX = matrixVals[Matrix.MSCALE_X];
+            float scaleY = matrixVals[Matrix.MSCALE_Y];
+            Size o = getOriginalImageSize(v);
+            return new Size(Math.round(o.getWidth() * scaleX), Math.round(o.getHeight() * scaleY));
+        }
     }
 
     // Format the 3x3 transformation matrix of the ImageView as 3 lines of text
