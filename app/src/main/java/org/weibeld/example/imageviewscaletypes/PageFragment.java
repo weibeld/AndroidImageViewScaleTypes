@@ -3,7 +3,6 @@ package org.weibeld.example.imageviewscaletypes;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -23,6 +22,7 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso;
 
 import org.weibeld.example.imageviewscaletypes.databinding.FragmentPageBinding;
@@ -75,16 +75,11 @@ public class PageFragment extends Fragment {
         mBind = FragmentPageBinding.bind(mRootView);
         mBind.imageView.setScaleType(mScaleType);
 
-        Log.v(LOG_TAG, "onCreateView " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
-
         ViewTreeObserver o = mBind.imageView.getViewTreeObserver();
         // TODO: remove the listener as soon as all sizes are correctly returned for the first time
         o.addOnGlobalLayoutListener(() -> {
             // It may happen that the Fragment is not attached to its Activity, in which case
-            // accessing the resources (R) results in an exception.
+            // accessing the resources (getString) would cause an exception.
             if (isAdded()) {
                 Size vSize = getImageViewSize(mBind.imageView);
                 Size iSizeOrig = getOriginalImageSize(mBind.imageView);
@@ -111,10 +106,6 @@ public class PageFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.v(LOG_TAG, "onActivityCreated of " + mScaleType.name());
-        Log.v(LOG_TAG, "onActivityCreated " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onViewStateRestored --> onStart --> onResume
@@ -122,10 +113,6 @@ public class PageFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.v(LOG_TAG, "onStart of " + mScaleType.name());
-        Log.v(LOG_TAG, "onStart " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onStart --> onResume --> onPause
@@ -133,10 +120,6 @@ public class PageFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "onResume of " + mScaleType.name());
-        Log.v(LOG_TAG, "onResume " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
         setupImageView();
         // TODO: improve loading of large images (probably use Glide instead of Picasso)
         loadImage();
@@ -147,10 +130,6 @@ public class PageFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Log.v(LOG_TAG, "onPause of " + mScaleType.name());
-        Log.v(LOG_TAG, "onPause " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onPause --> onStop --> onDestroyView
@@ -158,20 +137,12 @@ public class PageFragment extends Fragment {
     public void onStop() {
         super.onStop();
         Log.v(LOG_TAG, "onStop of " + mScaleType.name());
-        Log.v(LOG_TAG, "onStop " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         Log.v(LOG_TAG, "onDestroyView of " + mScaleType.name());
-        Log.v(LOG_TAG, "onDestroyView " + mScaleType.name() + ":" +
-                "\nImageView size: " + getImageViewSize(mBind.imageView) +
-                "\nOriginal image size: " + getOriginalImageSize(mBind.imageView) +
-                "\nDisplayed image size: " + getDrawnImageSize(mBind.imageView));
     }
 
     // onDestroyView --> onDestroy --> onDetach
@@ -237,16 +208,13 @@ public class PageFragment extends Fragment {
         // previous fragments of the ViewPager). For all the other fragments, when the user flips
         // to them, the full callback chain will be called (onCreate -> onStart -> onResume), so
         // in these fragments, the new image will be displayed too.
-        SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
-        Uri uri = Uri.parse(sharedPrefs.getString(getString(R.string.pref_image_key),
-                getString(R.string.pref_image_default)));
+        Uri uri = Uri.parse(Pref.get(getActivity(), R.string.pref_image_key));
         Log.v(LOG_TAG, "Image URI in SharedPreferences: " + uri.toString());
 
         // If NOT loading the default image, check if we have read URI permission for this image
         if (!uri.toString().equals(getString(R.string.pref_image_default))) {
-            int readPerm = getActivity().checkUriPermission(uri, Binder.getCallingPid(),
-                    Binder.getCallingUid(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            if (readPerm != PackageManager.PERMISSION_GRANTED) {
+            int p = getActivity().checkUriPermission(uri, Binder.getCallingPid(), Binder.getCallingUid(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (p != PackageManager.PERMISSION_GRANTED) {
                 // We get here if we don't have a read URI permission for this image, or if the
                 // image has been deleted. In any case, load the default image instead. Attempting
                 // to load an image without URI read permission, would result in the following:
@@ -260,7 +228,9 @@ public class PageFragment extends Fragment {
         loadWithPicasso(uri);
     }
 
-    // Throws permission denial exception
+    // Reaction on exceptions:
+    // PermissionDenialException: app crash
+    // OutOfMemoryError: app crash
     private void loadWithSetImageDrawable(Uri imageUri) {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with setImageDrawable " + imageUri.toString());
         try {
@@ -272,8 +242,9 @@ public class PageFragment extends Fragment {
             e.printStackTrace();
         }
     }
-
-    // Throws permission denial exception
+    // Reaction on exceptions:
+    // PermissionDenialException: app crash
+    // OutOfMemoryError: app crash
     private void loadWithSetImageBitmap(Uri imageUri) {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with setImageBitmap " + imageUri.toString());
         try {
@@ -285,14 +256,17 @@ public class PageFragment extends Fragment {
         }
     }
 
-    // Catches permission denial exception and prints stacktrace, no image loaded into the ImageView
+    // Reaction on exceptions:
+    // PermissionDenialException: catch and print stacktrace (no image loaded)
+    // OutOfMemoryError: app crash
     private void loadWithSetImageURI(Uri imageUri) {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with setImageURI " + imageUri.toString());
         mBind.imageView.setImageURI(imageUri);
     }
 
-    // Catches permission denial exception but does not print any log output about it, no image
-    // loaded into the ImageView
+    // Reaction on exceptions:
+    // PermissionDenialException: catch but no log output (no image loaded)
+    // OutOfMemoryError: catch and log output (no image loaded)
     private void loadWithPicasso(Uri imageUri) {
         Log.v(LOG_TAG, mScaleType.name() + ": loading image with Picasso " + imageUri.toString());
         Picasso.with(getActivity()).setIndicatorsEnabled(true);
@@ -301,6 +275,10 @@ public class PageFragment extends Fragment {
                 .load(imageUri)
                 //.resize(1850, 2780)
                 .into(mBind.imageView);
+    }
+
+    private void loadWithGlide(Uri imageUri) {
+        Glide.with(this).load(imageUri).into(mBind.imageView);
     }
 
     // Width and height (as drawn on screen) of ImageView

@@ -3,7 +3,6 @@ package org.weibeld.example.imageviewscaletypes;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Build;
@@ -92,22 +91,10 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK && resultData != null) {
                 Uri uri = resultData.getData();
                 settleUriPermissions(uri, resultData.getFlags());
-                SharedPreferences sharedPrefs = getPreferences(MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putString(getString(R.string.pref_image_key), uri.toString());
-                editor.commit();
+                Pref.put(this, R.string.pref_image_key, uri.toString());
                 Log.v(LOG_TAG, "onActivityResult: saved " + uri.toString() + " in SharedPreferences");
             }
         }
-//        else if (requestCode == Data.EDIT_IMAGE_VIEW_REQUEST_CODE) {
-//            Fragment fragment = new PageFragment();
-//            Bundle arg = new Bundle();
-//            arg.putInt(Data.ARG_POSITION, mBind.viewpager.getCurrentItem());
-//            fragment.setArguments(arg);
-//            Fragment frag = ((FragmentPagerAdapter) mBind.viewpager.getAdapter()).getItem(mBind.viewpager.getCurrentItem());
-//            //getFragmentManager().beginTransaction().replace(R.id.viewpager, fragment).commit();
-//            getFragmentManager().beginTransaction().detach(frag).attach(frag).commitAllowingStateLoss();
-//        }
     }
 
     // Helper function for settling URI permission issues on both pre and post KitKat devices. The
